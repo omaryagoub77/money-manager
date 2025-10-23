@@ -1,12 +1,12 @@
 import React from 'react';
+import './pages/Home.css'
 
 const TestTailwind = () => {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold text-red-500">Tailwind CSS Test</h1>
-      <p className="text-blue-500">If you see colored text, Tailwind is working!</p>
-      <div className="bg-green-200 p-4 rounded mt-4">
-        This should have a green background if Tailwind is working correctly.
+    <div style={{padding:16}}>
+      <div className="card">
+        <h2>UI Test Card</h2>
+        <p className="muted">This page uses the new design tokens and card styles.</p>
       </div>
     </div>
   );

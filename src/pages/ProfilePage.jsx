@@ -27,9 +27,9 @@ const ProfilePage = () => {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  // Cloudinary configuration
-  const CLOUD_NAME = "dlrxomdfh";
-  const UPLOAD_PRESET = "Shop-preset";
+  // Cloudinary configuration (use Vite env variables)
+  const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME || "dlrxomdfh";
+  const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET || "Shop-preset";
 
   // Fetch user profile data if it exists
   useEffect(() => {
@@ -380,7 +380,7 @@ const ProfilePage = () => {
                         onChange={handleInputChange}
                         className="radio-input"
                       />
-                      <span className="ml-2">Male</span>
+                      <span className="radio-label-text">Male</span>
                     </label>
                     <label className="radio-label">
                       <input
@@ -391,16 +391,16 @@ const ProfilePage = () => {
                         onChange={handleInputChange}
                         className="radio-input"
                       />
-                      <span className="ml-2">Female</span>
+                      <span className="radio-label-text">Female</span>
                     </label>
                   </div>
                 </div>
                 
-                <div className="pt-4">
+                <div className="form-actions">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="button button-primary"
+                    className="btn btn-primary"
                   >
                     {loading ? (
                       <>
@@ -486,7 +486,7 @@ const ProfilePage = () => {
               <h3 className="info-title">Account Information</h3>
               <div className="info-list">
                 <div className="info-item">
-                  <div className="flex justify-between items-center">
+                  <div className="info-row">
                     <span className="info-label">Full Name:</span>
                     <div className="info-value-container">
                       {editingField === 'fullName' ? (
@@ -516,7 +516,7 @@ const ProfilePage = () => {
                 </div>
                 
                 <div className="info-item">
-                  <div className="flex justify-between items-center">
+                  <div className="info-row">
                     <span className="info-label">Age:</span>
                     <div className="info-value-container">
                       {editingField === 'age' ? (
@@ -546,7 +546,7 @@ const ProfilePage = () => {
                 </div>
                 
                 <div className="info-item">
-                  <div className="flex justify-between items-center">
+                  <div className="info-row">
                     <span className="info-label">Email:</span>
                     <div className="info-value-container">
                       {editingField === 'email' ? (
@@ -576,7 +576,7 @@ const ProfilePage = () => {
                 </div>
                 
                 <div className="info-item">
-                  <div className="flex justify-between items-center">
+                  <div className="info-row">
                     <span className="info-label">Phone Number:</span>
                     <div className="info-value-container">
                       {editingField === 'phoneNumber' ? (
@@ -606,7 +606,7 @@ const ProfilePage = () => {
                 </div>
                 
                 <div className="info-item">
-                  <div className="flex justify-between items-center">
+                  <div className="info-row">
                     <span className="info-label">Gender:</span>
                     <div className="info-value-container">
                       {editingField === 'gender' ? (
@@ -638,18 +638,17 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
-
-            <div className="pt-8 space-y-4">
+            <div className="action-buttons">
               <button 
                 onClick={() => setShowForm(true)}
-                className="button button-secondary"
+                className="btn btn-secondary"
               >
                 <span className="button-icon">✏️</span>
                 Edit Full Profile
               </button>
               <button 
                 onClick={handleLogout}
-                className="button button-danger"
+                className="btn btn-danger"
               >
                 <span className="button-icon">🚪</span>
                 Logout
@@ -663,3 +662,4 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+

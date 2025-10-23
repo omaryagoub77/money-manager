@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import Header from "../components/Header";
 import "./DepositPage.css";
 
 export default function DepositPage() {
@@ -17,8 +18,8 @@ export default function DepositPage() {
   const [deposits, setDeposits] = useState([]);
   const [fetchingDeposits, setFetchingDeposits] = useState(true);
 
-  const CLOUD_NAME = "dlrxomdfh"; // replace with your Cloudinary cloud name
-  const  UPLOAD_PRESET = "Shop-preset"; // replace with your preset
+  const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME || "dlrxomdfh"; // set VITE_CLOUD_NAME in .env
+  const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET || "Shop-preset"; // set VITE_UPLOAD_PRESET in .env
 
   // Fetch user deposits
   useEffect(() => {
@@ -148,16 +149,7 @@ export default function DepositPage() {
 
   return (
     <div className="whatsapp-container">
-      {/* WhatsApp-style Header */}
-      <div className="whatsapp-header">
-        <div className="whatsapp-header-avatar">
-          <span className="font-bold">{currentUser?.email?.charAt(0).toUpperCase() || 'U'}</span>
-        </div>
-        <div className="whatsapp-header-info">
-          <h1>Deposit Money</h1>
-          <p>Online</p>
-        </div>
-      </div>
+  
 
       {/* Chat Container */}
       <div className="chat-container">
@@ -261,3 +253,4 @@ export default function DepositPage() {
     </div>
   );
 }
+

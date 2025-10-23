@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import './Auth.css'
 
 export default function SignIn() {
   const emailRef = useRef();
@@ -24,15 +25,15 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
-        {error && <div className="text-red-600 mb-4">{error}</div>}
-        <input type="email" ref={emailRef} placeholder="Email" required className="w-full p-2 mb-4 border rounded"/>
-        <input type="password" ref={passwordRef} placeholder="Password" required className="w-full p-2 mb-4 border rounded"/>
-        <button disabled={loading} className="w-full bg-[#075e54] text-white p-2 rounded">Sign In</button>
-        <p className="mt-4 text-center text-gray-600">
-          Don't have an account? <Link to="/signup" className="text-blue-600">Sign Up</Link>
+    <div className="auth-page">
+      <form onSubmit={handleSubmit} className="auth-card">
+        <h2 className="auth-title">Sign In</h2>
+        {error && <div className="auth-error">{error}</div>}
+        <input type="email" ref={emailRef} placeholder="Email" required className="auth-input"/>
+        <input type="password" ref={passwordRef} placeholder="Password" required className="auth-input"/>
+        <button disabled={loading} className="auth-button">Sign In</button>
+        <p className="auth-footer">
+          Don't have an account? <Link to="/signup" className="auth-link">Sign Up</Link>
         </p>
       </form>
     </div>

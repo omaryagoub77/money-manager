@@ -1,0 +1,18 @@
+/* Shared design tokens for the app */
+:root {
+  --whatsapp-green: #075E54;
+  --whatsapp-light-green: #25D366;
+  --whatsapp-bg: #ECE5DD;
+  --whatsapp-dark-green: #128C7E;
+  --whatsapp-bubble-green: #DCF8C6;
+  --whatsapp-text: #111B21;
+  --whatsapp-gray: #999999;
+  --light-gray: #F8F9FA;
+  --white: #FFFFFF;
+}
+
+/* Layout tokens */
+:root {
+  --container-max-width: 1200px;
+  --page-padding: 1rem;
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import Header from '../components/Header';
 import './CashoutPage.css';
 
 const CashoutPage = () => {
@@ -139,15 +140,7 @@ const CashoutPage = () => {
 
   return (
     <div className="whatsapp-container">
-      <div className="whatsapp-header">
-        <div className="whatsapp-header-avatar">
-          <span className="font-bold">{currentUser?.email?.charAt(0).toUpperCase() || 'U'}</span>
-        </div>
-        <div className="whatsapp-header-info">
-          <h1>Cashout Request</h1>
-          <p>Online</p>
-        </div>
-      </div>
+
 
       <div className="main-content">
         <h1 className="page-title">Cashout Request</h1>
@@ -247,3 +240,4 @@ const CashoutPage = () => {
 };
 
 export default CashoutPage;
+
