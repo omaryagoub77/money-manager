@@ -1,1 +1,0 @@
-import{_ as e,n as t,v as n}from"./index-BVNY7ubN.js";/* empty css             */e();var r=n(t()),i=()=>(0,r.jsx)(`div`,{style:{padding:16},children:(0,r.jsxs)(`div`,{className:`card`,children:[(0,r.jsx)(`h2`,{children:`UI Test Card`}),(0,r.jsx)(`p`,{className:`muted`,children:`This page uses the new design tokens and card styles.`})]})});export{i as default};
