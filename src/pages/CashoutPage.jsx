@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseConfig';
+import { db, deleteDoc, doc } from '../firebaseConfig';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
@@ -15,6 +15,8 @@ const CashoutPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [fetching, setFetching] = useState(true);
+  // State to track which request is being deleted
+  const [deletingRequestId, setDeletingRequestId] = useState(null);
 
   // Fetch user's cashout requests
   useEffect(() => {
@@ -112,6 +114,29 @@ const CashoutPage = () => {
       setError('Failed to submit cashout request. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Delete cashout request function
+  const handleDeleteRequest = async (requestId) => {
+    // Set the deleting state for this request
+    setDeletingRequestId(requestId);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, 'cashouts', requestId));
+      
+      // Update local state
+      setRequests(requests.filter(request => request.id !== requestId));
+      setSuccess('Cashout request deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting cashout request:', err);
+      setError('Failed to delete cashout request. Please try again.');
+    } finally {
+      // Reset deleting state
+      setDeletingRequestId(null);
     }
   };
 
@@ -229,6 +254,20 @@ const CashoutPage = () => {
                   <div className="request-footer">
                     Requested on {formatDate(request.timestamp)}
                   </div>
+                  {/* Action buttons */}
+                  <div className="request-actions">
+                    <button
+                      onClick={() => handleDeleteRequest(request.id)}
+                      disabled={deletingRequestId === request.id}
+                      className="delete-button"
+                    >
+                      {deletingRequestId === request.id ? (
+                        <span className="spinner"></span>
+                      ) : (
+                        "Delete"
+                      )}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -240,4 +279,3 @@ const CashoutPage = () => {
 };
 
 export default CashoutPage;
-

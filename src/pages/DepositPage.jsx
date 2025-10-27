@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebaseConfig";
+import { db, deleteDoc, doc } from "../firebaseConfig";
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
@@ -17,6 +17,8 @@ export default function DepositPage() {
   const [error, setError] = useState("");
   const [deposits, setDeposits] = useState([]);
   const [fetchingDeposits, setFetchingDeposits] = useState(true);
+  // State to track which deposit is being deleted
+  const [deletingDepositId, setDeletingDepositId] = useState(null);
 
   const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME || "dlrxomdfh"; // set VITE_CLOUD_NAME in .env
   const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET || "Shop-preset"; // set VITE_UPLOAD_PRESET in .env
@@ -100,6 +102,7 @@ export default function DepositPage() {
         message,
         imageUrl: data.secure_url,
         timestamp: serverTimestamp(),
+        status: "pending",
       });
 
       setAmount("");
@@ -131,6 +134,29 @@ export default function DepositPage() {
       setError(err.message || "Failed to submit deposit");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Delete deposit function
+  const handleDeleteDeposit = async (depositId) => {
+    // Set the deleting state for this deposit
+    setDeletingDepositId(depositId);
+    setError("");
+    setSuccess("");
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, "deposits", depositId));
+      
+      // Update local state
+      setDeposits(deposits.filter(deposit => deposit.id !== depositId));
+      setSuccess("Deposit deleted successfully!");
+    } catch (err) {
+      console.error("Error deleting deposit:", err);
+      setError("Failed to delete deposit. Please try again.");
+    } finally {
+      // Reset deleting state
+      setDeletingDepositId(null);
     }
   };
 
@@ -198,13 +224,26 @@ export default function DepositPage() {
                     <p className="message-timestamp">
                       {formatTimestamp(deposit.timestamp)}
                     </p>
+                    {/* Action buttons */}
+                    <div className="deposit-actions">
+                      <button
+                        onClick={() => handleDeleteDeposit(deposit.id)}
+                        disabled={deletingDepositId === deposit.id}
+                        className="delete-button"
+                      >
+                        {deletingDepositId === deposit.id ? (
+                          <span className="spinner"></span>
+                        ) : (
+                          "Delete"
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           ))
         )}
-
         {/* Deposit Form */}
         <div className="form-container">
           <h2 className="form-title">Submit New Deposit</h2>
@@ -249,8 +288,8 @@ export default function DepositPage() {
             </button>
           </form>
         </div>
+
       </div>
     </div>
   );
 }
-

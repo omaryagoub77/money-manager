@@ -58,7 +58,7 @@ export default function ChatBox() {
         </div>
         <div className="chat-header-info">
           <h1>Chat Room</h1>
-          <p>{messages.length} participants</p>
+          <p>{messages.length} Messages</p>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 /* CashoutPage.css — modern dashboard-inspired styles */
-/* 
+
 :root{
   --bg:#f5f7fb; 
   --card-bg:#ffffff; 
@@ -18,7 +18,7 @@
   --error-bg:#fef2f2;
   --elevation:0 4px 20px rgba(0,0,0,0.08);
   --elevation-hover:0 10px 25px rgba(0,0,0,0.1);
-} */
+}
 
 html,body{height:100%}
 .whatsapp-container{
@@ -236,6 +236,56 @@ html,body{height:100%}
   font-size:0.8rem;
   color:var(--muted);
   margin-top:4px;
+}
+
+/* Request Actions */
+.request-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.delete-button {
+  background-color: var(--error);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+}
+
+.delete-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Status badges */
