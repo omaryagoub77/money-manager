@@ -20,6 +20,7 @@ const Header = () => {
     }
   };
 
+
   return (
     <header className="money-box-header">
       <div className="header-container">
@@ -41,7 +42,8 @@ const Header = () => {
             <li className="nav-item"><Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link></li>
             <li className="nav-item"><Link to="/deposit" className={`nav-link ${isActive('/deposit') ? 'active' : ''}`}>Deposit</Link></li>
             <li className="nav-item"><Link to="/chat" className={`nav-link ${isActive('/chat') ? 'active' : ''}`}>Chat</Link></li>
-            <li className="nav-item"><Link to="/cashout" className={`nav-link ${isActive('/cashout') ? 'active' : ''}`}>Cashout</Link></li>
+            <li className="nav-item"><Link to="/loans" className={`nav-link ${isActive('/loans') ? 'active' : ''}`}>Loans</Link></li>
+            <li className="nav-item"><Link to="/payback" className={`nav-link ${isActive('/payback') ? 'active' : ''}`}>Payback</Link></li>
             <li className="nav-item"><Link to="/profile" className={`nav-link ${isActive('/profile') ? 'active' : ''}`}>Profile</Link></li>
           </ul>
 

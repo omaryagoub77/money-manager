@@ -7,10 +7,11 @@ import { PrivateRoute } from './components/Chat/PrivateRoute';
 const SignIn = lazy(() => import('./components/Chat/SignIn'));
 const SignUp = lazy(() => import('./components/Chat/SignUp'));
 const DepositPage = lazy(() => import('./pages/DepositPage'));
+const Payback = lazy(() => import('./pages/Payback'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const Home = lazy(() => import('./pages/Home'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const CashoutPage = lazy(() => import('./pages/CashoutPage'));
+const Loans = lazy(() => import('./pages/Loans'));
 const TestTailwind = lazy(() => import('./TestTailwind'));
 
 function App() {
@@ -24,7 +25,8 @@ function App() {
           <Route path="/deposit" element={<PrivateRoute><DepositPage /></PrivateRoute>} />
           <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-          <Route path="/cashout" element={<PrivateRoute><CashoutPage /></PrivateRoute>} />
+          <Route path="/loans" element={<PrivateRoute><Loans /></PrivateRoute>} />
+          <Route path="/payback" element={<PrivateRoute><Payback /></PrivateRoute>} />
           <Route path="/test" element={<TestTailwind />} />
           <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
         </Routes>

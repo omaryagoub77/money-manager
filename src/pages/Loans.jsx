@@ -3,7 +3,7 @@ import { db, deleteDoc, doc } from '../firebaseConfig';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
-import './CashoutPage.css';
+import './Loans.css';
 
 const CashoutPage = () => {
   const { currentUser } = useAuth();
@@ -15,8 +15,6 @@ const CashoutPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [fetching, setFetching] = useState(true);
-  // State to track which request is being deleted
-  const [deletingRequestId, setDeletingRequestId] = useState(null);
 
   // Fetch user's cashout requests
   useEffect(() => {
@@ -24,7 +22,7 @@ const CashoutPage = () => {
 
     // Simplified query without composite index requirement
     const q = query(
-      collection(db, 'cashouts'),
+      collection(db, 'loans'),
       where('userId', '==', currentUser.uid)
     );
 
@@ -49,7 +47,7 @@ const CashoutPage = () => {
     }, (err) => {
       console.error('Error fetching cashout requests:', err);
       // Fallback to fetch all and filter locally
-      const unsubscribeAll = onSnapshot(collection(db, 'cashouts'), (snapshot) => {
+      const unsubscribeAll = onSnapshot(collection(db, 'loans'), (snapshot) => {
         const cashoutRequests = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -95,7 +93,7 @@ const CashoutPage = () => {
     setSuccess('');
 
     try {
-      await addDoc(collection(db, 'cashouts'), {
+      await addDoc(collection(db, 'loans'), {
         userId: currentUser.uid,
         amount: parseFloat(amount),
         name: name,
@@ -103,7 +101,7 @@ const CashoutPage = () => {
         status: 'pending', // pending, accepted, denied
         timestamp: serverTimestamp()
       });
-
+Accepted
       // Reset form
       setAmount('');
       setName('');
@@ -117,28 +115,6 @@ const CashoutPage = () => {
     }
   };
 
-  // Delete cashout request function
-  const handleDeleteRequest = async (requestId) => {
-    // Set the deleting state for this request
-    setDeletingRequestId(requestId);
-    setError('');
-    setSuccess('');
-
-    try {
-      // Delete from Firestore
-      await deleteDoc(doc(db, 'cashouts', requestId));
-      
-      // Update local state
-      setRequests(requests.filter(request => request.id !== requestId));
-      setSuccess('Cashout request deleted successfully!');
-    } catch (err) {
-      console.error('Error deleting cashout request:', err);
-      setError('Failed to delete cashout request. Please try again.');
-    } finally {
-      // Reset deleting state
-      setDeletingRequestId(null);
-    }
-  };
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -168,7 +144,7 @@ const CashoutPage = () => {
 
 
       <div className="main-content">
-        <h1 className="page-title">Cashout Request</h1>
+        <h1 className="page-title">Loan Request</h1>
         
         {/* Cashout Form */}
         <div className="card animate-slideUp">
@@ -254,20 +230,7 @@ const CashoutPage = () => {
                   <div className="request-footer">
                     Requested on {formatDate(request.timestamp)}
                   </div>
-                  {/* Action buttons */}
-                  <div className="request-actions">
-                    <button
-                      onClick={() => handleDeleteRequest(request.id)}
-                      disabled={deletingRequestId === request.id}
-                      className="delete-button"
-                    >
-                      {deletingRequestId === request.id ? (
-                        <span className="spinner"></span>
-                      ) : (
-                        "Delete"
-                      )}
-                    </button>
-                  </div>
+                 
                 </div>
               ))}
             </div>

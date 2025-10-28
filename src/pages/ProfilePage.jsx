@@ -13,7 +13,9 @@ const ProfilePage = () => {
     email: '',
     phoneNumber: '',
     gender: 'male',
-    imageUrl: '' // Added for profile image URL
+    imageUrl: '', // Added for profile image URL
+    momoNumber: '', // New field
+    creditCardNumber: '' // New field
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingField, setEditingField] = useState(null);
@@ -49,7 +51,9 @@ const ProfilePage = () => {
             email: data.email || '',
             phoneNumber: data.phoneNumber || '',
             gender: data.gender || 'male',
-            imageUrl: data.imageUrl || '' // Get existing image URL
+            imageUrl: data.imageUrl || '', // Get existing image URL
+            momoNumber: data.momoNumber || '', // Get existing MoMo number
+            creditCardNumber: data.creditCardNumber || '' // Get existing credit card number
           });
           setProfileDocId(doc.id);
           setShowForm(false);
@@ -64,10 +68,21 @@ const ProfilePage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // For numeric fields, ensure only numbers are entered
+    if (name === 'momoNumber' || name === 'creditCardNumber') {
+      // Only allow numbers
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: numericValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -108,8 +123,22 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.age || !formData.email || !formData.phoneNumber) {
+    
+    // Validate all required fields including the new ones
+    if (!formData.fullName || !formData.age || !formData.email || !formData.phoneNumber || 
+        !formData.momoNumber || !formData.creditCardNumber) {
       setError("Please fill all required fields");
+      return;
+    }
+    
+    // Validate that MoMo and Credit Card numbers are numeric
+    if (!/^\d+$/.test(formData.momoNumber)) {
+      setError("MoMo Number must contain only numbers");
+      return;
+    }
+    
+    if (!/^\d+$/.test(formData.creditCardNumber)) {
+      setError("Credit Card Number must contain only numbers");
       return;
     }
 
@@ -175,6 +204,13 @@ const ProfilePage = () => {
 
   const saveEdit = async () => {
     if (!editingField || !profileDocId) return;
+    
+    // Validate numeric fields
+    if ((editingField === 'momoNumber' || editingField === 'creditCardNumber') && 
+        tempValue && !/^\d+$/.test(tempValue)) {
+      setError(`${editingField === 'momoNumber' ? 'MoMo Number' : 'Credit Card Number'} must contain only numbers`);
+      return;
+    }
     
     try {
       await updateDoc(doc(db, 'users', profileDocId), {
@@ -361,6 +397,40 @@ const ProfilePage = () => {
                     type="tel"
                     placeholder="Enter your phone number"
                     value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                
+                {/* New MoMo Number field */}
+                <div className="form-group">
+                  <label className="form-label" htmlFor="momoNumber">
+                    MoMo Number
+                  </label>
+                  <input
+                    className="form-input"
+                    id="momoNumber"
+                    name="momoNumber"
+                    type="text"
+                    placeholder="Enter your MoMo number"
+                    value={formData.momoNumber}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                
+                {/* New Credit Card Number field */}
+                <div className="form-group">
+                  <label className="form-label" htmlFor="creditCardNumber">
+                    Credit Card Number
+                  </label>
+                  <input
+                    className="form-input"
+                    id="creditCardNumber"
+                    name="creditCardNumber"
+                    type="text"
+                    placeholder="Enter your credit card number"
+                    value={formData.creditCardNumber}
                     onChange={handleInputChange}
                     required
                   />
@@ -605,6 +675,81 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 
+                {/* New MoMo Number field in profile view */}
+                <div className="info-item">
+                  <div className="info-row">
+                    <span className="info-label">MoMo Number:</span>
+                    <div className="info-value-container">
+                      {editingField === 'momoNumber' ? (
+                        <div className="edit-form">
+                          <input
+                            type="text"
+                            value={tempValue}
+                            onChange={(e) => {
+                              // Only allow numbers
+                              const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                              setTempValue(numericValue);
+                            }}
+                            className="edit-input"
+                          />
+                          <button onClick={saveEdit} className="edit-save-button">✓</button>
+                          <button onClick={cancelEdit} className="edit-cancel-button">✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="info-value">{formData.momoNumber || 'N/A'}</span>
+                          <button 
+                            onClick={() => startEditing('momoNumber', formData.momoNumber)}
+                            className="edit-button"
+                          >
+                            ✏️
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* New Credit Card Number field in profile view */}
+                <div className="info-item">
+                  <div className="info-row">
+                    <span className="info-label">Credit Card Number:</span>
+                    <div className="info-value-container">
+                      {editingField === 'creditCardNumber' ? (
+                        <div className="edit-form">
+                          <input
+                            type="text"
+                            value={tempValue}
+                            onChange={(e) => {
+                              // Only allow numbers
+                              const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                              setTempValue(numericValue);
+                            }}
+                            className="edit-input"
+                          />
+                          <button onClick={saveEdit} className="edit-save-button">✓</button>
+                          <button onClick={cancelEdit} className="edit-cancel-button">✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="info-value">
+                            {formData.creditCardNumber 
+                              ? '•••• •••• •••• ' + formData.creditCardNumber.slice(-4)
+                              : 'N/A'
+                            }
+                          </span>
+                          <button 
+                            onClick={() => startEditing('creditCardNumber', formData.creditCardNumber)}
+                            className="edit-button"
+                          >
+                            ✏️
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="info-item">
                   <div className="info-row">
                     <span className="info-label">Gender:</span>
@@ -662,4 +807,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-
