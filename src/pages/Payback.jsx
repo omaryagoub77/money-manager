@@ -123,9 +123,27 @@ const PaybackLoansPage = () => {
     }
   };
 
+  // Check if paid amount matches total payable (with small tolerance for floating-point differences)
+  const isAmountValid = (paid, total) => {
+    if (!paid || !total) return false;
+    const paidValue = parseFloat(paid);
+    const totalValue = parseFloat(total);
+    return Math.abs(paidValue - totalValue) < 0.01; // Allow differences within $0.01
+  };
+
   // Handle form submission
   const handleSubmitPayment = async (e, loan) => {
     e.preventDefault();
+
+    // Calculate total payable with 10% interest
+    const interest = 0.10;
+    const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * interest));
+
+    // Validate that paid amount matches total payable
+    if (!isAmountValid(paidAmount, totalPayable)) {
+      showAlert(`Please enter the exact amount: $${totalPayable.toFixed(2)}`, 'error');
+      return;
+    }
 
     // Validate inputs
     if (!paidAmount || parseFloat(paidAmount) <= 0) {
@@ -143,10 +161,6 @@ const PaybackLoansPage = () => {
     try {
       // Upload image to Cloudinary
       const imageUrl = await uploadImage(proofImage);
-
-      // Calculate total payable with 10% interest
-      const interest = 0.10;
-      const totalPayable = loan.amount + (loan.amount * interest);
 
       // Update the loan document
       const loanRef = doc(db, 'loans', loan.id);
@@ -221,11 +235,14 @@ const PaybackLoansPage = () => {
             <div className="request-list">
               {acceptedLoans.map((loan) => {
                 const interest = 0.10;
-                const totalPayable = loan.amount + (loan.amount * interest);
+                const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * interest));
                 const isExpanded = expandedLoanId === loan.id;
 
                 // Determine if payment form should be disabled
                 const paymentSubmitted = loan.paymentStatus && loan.paymentStatus !== 'pending';
+                
+                // Check if the entered amount is valid
+                const amountValid = isAmountValid(paidAmount, totalPayable);
 
                 return (
                   <div key={loan.id} className="request-item animate-slideUp">
@@ -271,6 +288,13 @@ const PaybackLoansPage = () => {
                     {/* Payment Form */}
                     <div className={`payment-form ${isExpanded ? 'show' : ''}`}>
                       <form onSubmit={(e) => handleSubmitPayment(e, loan)} className="form-group">
+                        <div className="amount-info">
+                          <p className="total-payable">
+                            <strong>Total Amount Due:</strong> ${totalPayable.toFixed(2)}
+                            <span className="interest-info">(Loan: ${loan.amount} + 10% Interest: ${(loan.amount * interest).toFixed(2)})</span>
+                          </p>
+                        </div>
+                        
                         <div>
                           <label className="form-label">Amount Paid</label>
                           <input
@@ -283,6 +307,18 @@ const PaybackLoansPage = () => {
                             step="0.01"
                             disabled={paymentSubmitted}
                           />
+                          
+                          {paidAmount && !amountValid && (
+                            <div className="helper-text">
+                              Please enter the exact amount: ${totalPayable.toFixed(2)}
+                            </div>
+                          )}
+                          
+                          {paidAmount && amountValid && (
+                            <div className="helper-text valid">
+                              ✓ Amount is correct
+                            </div>
+                          )}
                         </div>
 
                         <div>
@@ -304,11 +340,17 @@ const PaybackLoansPage = () => {
 
                         <button
                           type="submit"
-                          disabled={submitting || paymentSubmitted}
-                          className="form-button"
+                          disabled={submitting || paymentSubmitted || !amountValid || !proofImage}
+                          className={`form-button ${!amountValid || !proofImage ? 'disabled-button' : ''}`}
                         >
                           {submitting ? 'Submitting...' : 'Submit Payment'}
                         </button>
+                        
+                        {!amountValid && paidAmount && (
+                          <div className="form-help-text">
+                            You must pay the exact amount due (${totalPayable.toFixed(2)}) to submit your payment.
+                          </div>
+                        )}
                       </form>
                     </div>
                   </div>
@@ -330,7 +372,7 @@ const PaybackLoansPage = () => {
         }
 
         .payment-form.show {
-          max-height: 500px;
+          max-height: 600px;
           transition: max-height 0.5s ease-in;
         }
 
@@ -380,6 +422,53 @@ const PaybackLoansPage = () => {
         .badge-green { background: #d1fae5; color: #065f46; }
         .badge-red { background: #fee2e2; color: #991b1b; }
         .badge-yellow { background: #fef3c7; color: #78350f; }
+        
+        .amount-info {
+          margin-bottom: 12px;
+          padding: 10px;
+          background-color: #f0f9ff;
+          border-radius: 6px;
+          border-left: 4px solid #3b82f6;
+        }
+        
+        .total-payable {
+          margin: 0;
+          font-weight: 600;
+          color: #1e40af;
+        }
+        
+        .interest-info {
+          display: block;
+          font-size: 12px;
+          color: #64748b;
+          margin-top: 4px;
+          font-weight: normal;
+        }
+        
+        .helper-text {
+          margin-top: 6px;
+          font-size: 12px;
+          color: #b91c1c;
+        }
+        
+        .helper-text.valid {
+          color: #065f46;
+        }
+        
+        .form-help-text {
+          margin-top: 10px;
+          font-size: 13px;
+          color: #64748b;
+          text-align: center;
+          padding: 8px;
+          background-color: #f1f5f9;
+          border-radius: 6px;
+        }
+        
+        .disabled-button {
+          background-color: #9ca3af !important;
+          cursor: not-allowed !important;
+        }
       `}</style>
     </div>
   );
