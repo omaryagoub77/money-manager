@@ -1,37 +1,11 @@
 /* ChatBox.css — modern dashboard-inspired styles */
 
-:root{
-  --bg:#f5f7fb; 
-  --card-bg:#ffffff; 
-  --accent:#6366f1; 
-  --accent-2:#4f46e5; 
-  --accent-light:#818cf8;
-  --text:#1f2937; 
-  --text-light:#6b7280; 
-  --muted:#9ca3af; 
-  --border:#e5e7eb;
-  --success:#10b981;
-  --warning:#f59e0b;
-  --error:#ef4444;
-  --success-bg:#ecfdf5;
-  --warning-bg:#fffbeb;
-  --error-bg:#fef2f2;
-  --elevation:0 4px 20px rgba(0,0,0,0.08);
-  --elevation-hover:0 10px 25px rgba(0,0,0,0.1);
-  --transition-fast:0.15s ease;
-  --transition-normal:0.25s ease;
-  --container-width:900px;
-  --font-sans:Inter,Poppins,system-ui,sans-serif;
-  --glass:rgba(255,255,255,0.7);
-  --shadow:0 4px 12px rgba(0,0,0,0.05);
-}
-
 html,body{height:100%}
 .chat-container{
   height:100vh;
   display:flex;
   flex-direction:column;
-  background:var(--bg);
+  background:var(--bg-start);
   background-image: linear-gradient(to bottom, #f9fafb, #f5f7fb);
   font-family:var(--font-sans);
   color:var(--text);
@@ -54,7 +28,7 @@ html,body{height:100%}
   backdrop-filter:blur(8px);
   border-radius:16px;
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .chat-header:hover{
   box-shadow:var(--elevation-hover);
@@ -97,7 +71,7 @@ html,body{height:100%}
 /* Message Styles */
 .message{
   display:flex;
-  animation:fadeIn var(--transition-normal) ease-in-out;
+  animation:fadeIn var(--transition-fast) ease-in-out;
 }
 .message-sent{
   justify-content:flex-end;
@@ -135,7 +109,7 @@ html,body{height:100%}
   position:relative;
   box-shadow:var(--elevation);
   word-wrap:break-word;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .message-bubble:hover{
   box-shadow:var(--elevation-hover);
@@ -183,7 +157,7 @@ html,body{height:100%}
   padding:8px 16px;
   border-radius:999px;
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .input-wrapper:focus-within{
   box-shadow:var(--elevation-hover);
@@ -211,7 +185,7 @@ html,body{height:100%}
   border:none;
   cursor:pointer;
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .send-button:hover{
   transform:translateY(-2px);

@@ -1,30 +1,10 @@
 /* DepositPage.css — modern dashboard-inspired styles */
 
-:root{
-  --bg:#f5f7fb; 
-  --card-bg:#ffffff; 
-  --accent:#6366f1; 
-  --accent-2:#4f46e5; 
-  --accent-light:#818cf8;
-  --text:#1f2937; 
-  --text-light:#6b7280; 
-  --muted:#9ca3af; 
-  --border:#e5e7eb;
-  --success:#10b981;
-  --warning:#f59e0b;
-  --error:#ef4444;
-  --success-bg:#ecfdf5;
-  --warning-bg:#fffbeb;
-  --error-bg:#fef2f2;
-  --elevation:0 4px 20px rgba(0,0,0,0.08);
-  --elevation-hover:0 10px 25px rgba(0,0,0,0.1);
-}
-
 html,body{height:100%}
 .whatsapp-container{
   min-height:100vh;
-  background:var(--bg);
-  font-family:Inter,Poppins,system-ui,sans-serif;
+  background:var(--bg-start);
+  font-family:var(--font-sans);
   color:var(--text);
   background-image: linear-gradient(to bottom, #f9fafb, #f5f7fb);
   display:flex;
@@ -93,43 +73,6 @@ html,body{height:100%}
   gap:24px;
 }
 
-
-/* Status badges */
-.status-pending{
-  background:var(--warning-bg);
-  color:var(--warning);
-  padding:6px 12px;
-  border-radius:999px;
-  font-weight:600;
-  font-size:0.75rem;
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-}
-.status-accepted{
-  background:var(--success-bg);
-  color:var(--success);
-  padding:6px 12px;
-  border-radius:999px;
-  font-weight:600;
-  font-size:0.75rem;
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-}
-.status-denied{
-  background:var(--error-bg);
-  color:var(--error);
-  padding:6px 12px;
-  border-radius:999px;
-  font-weight:600;
-  font-size:0.75rem;
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-}
-
-  .request-status{
-    align-self:flex-start;
-    margin-top:8px;
-  }
 /* Cards */
 .card{
   background:var(--card-bg);

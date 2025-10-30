@@ -1,32 +1,9 @@
 /* ProfilePage.css — modern dashboard-inspired styles */
 
-:root{
-  --bg:#f5f7fb; 
-  --card-bg:#ffffff; 
-  --accent:#6366f1; 
-  --accent-2:#4f46e5; 
-  --accent-light:#818cf8;
-  --text:#1f2937; 
-  --text-light:#6b7280; 
-  --muted:#9ca3af; 
-  --border:#e5e7eb;
-  --success:#10b981;
-  --warning:#f59e0b;
-  --error:#ef4444;
-  --success-bg:#ecfdf5;
-  --warning-bg:#fffbeb;
-  --error-bg:#fef2f2;
-  --elevation:0 4px 20px rgba(0,0,0,0.08);
-  --elevation-hover:0 10px 25px rgba(0,0,0,0.1);
-  --transition-fast:0.15s ease;
-  --transition-normal:0.25s ease;
-  --font-sans:Inter,Poppins,system-ui,sans-serif;
-}
-
 html,body{height:100%}
 .whatsapp-container{
   min-height:100vh;
-  background:var(--bg);
+  background:var(--bg-start);
   background-image: linear-gradient(to bottom, #f9fafb, #f5f7fb);
   font-family:var(--font-sans);
   color:var(--text);
@@ -48,7 +25,7 @@ html,body{height:100%}
   border-radius:16px;
   padding:20px;
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .card:hover{
   box-shadow:var(--elevation-hover);
@@ -97,7 +74,7 @@ html,body{height:100%}
   align-items:center;
   justify-content:center;
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .profile-image:hover{
   transform:scale(1.02);
@@ -123,7 +100,7 @@ html,body{height:100%}
   border:1px solid var(--border);
   border-radius:12px;
   cursor:pointer;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
   font-size:0.875rem;
   color:var(--text);
   box-shadow:var(--elevation);
@@ -157,7 +134,7 @@ html,body{height:100%}
   border:1px solid var(--border);
   background:#f9fafb;
   outline:none;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
   font-size:0.95rem;
   color:var(--text);
 }
@@ -203,7 +180,7 @@ html,body{height:100%}
   border:none;
   font-weight:600;
   cursor:pointer;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
   font-size:0.95rem;
 }
 .btn-primary{
@@ -314,7 +291,7 @@ html,body{height:100%}
   justify-content:center;
   cursor:pointer;
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .edit-avatar-button:hover{
   transform:scale(1.1);
@@ -357,7 +334,7 @@ html,body{height:100%}
   border-radius:12px;
   border:1px solid var(--border);
   box-shadow:var(--elevation);
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .info-item:hover{
   box-shadow:var(--elevation-hover);
@@ -394,7 +371,7 @@ html,body{height:100%}
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .edit-button:hover{
   background:var(--accent-bg);
@@ -412,7 +389,7 @@ html,body{height:100%}
   border:1px solid var(--border);
   background:#fff;
   outline:none;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
   font-size:0.95rem;
   color:var(--text);
   min-width:150px;
@@ -432,7 +409,7 @@ html,body{height:100%}
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .edit-save-button:hover{
   background:var(--success);
@@ -449,7 +426,7 @@ html,body{height:100%}
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  transition:all var(--transition-normal);
+  transition:all var(--transition-fast);
 }
 .edit-cancel-button:hover{
   background:var(--error);

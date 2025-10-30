@@ -4,7 +4,7 @@ import { collection, query, where, onSnapshot, serverTimestamp, updateDoc, doc, 
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 
-const PaybackLoansPage = () => {
+function PaybackLoansPage() {
   const { currentUser } = useAuth();
   const [acceptedLoans, setAcceptedLoans] = useState([]);
   const [fetching, setFetching] = useState(true);
@@ -370,7 +370,7 @@ const PaybackLoansPage = () => {
           max-height: 0;
           transition: max-height 0.3s ease-out;
         }
-
+        
         .payment-form.show {
           max-height: 600px;
           transition: max-height 0.5s ease-in;

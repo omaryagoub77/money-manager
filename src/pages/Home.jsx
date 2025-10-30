@@ -219,25 +219,25 @@ const Home = () => {
         <div className="card">
           <h2>Deposit Money</h2>
           <p>Submit your deposits and track your financial history.</p>
-          <a href="/deposit">Deposit</a>
+          <a href="#/deposit">Deposit</a>
         </div>
 
         <div className="card">
           <h2>Request Loan</h2>
           <p>Request loans and track their status.</p>
-          <a href="/loans">Loans</a>
+          <a href="#/loans">Loans</a>
         </div>
 
         <div className="card">
           <h2>Pay Back Loans</h2>
           <p>Pay back your accepted loans.</p>
-          <a href="/payback">Pay Back</a>
+          <a href="#/payback">Pay Back</a>
         </div>
 
         <div className="card">
           <h2>Profile</h2>
           <p>Manage your account information and settings.</p>
-          <a href="/profile">Profile</a>
+          <a href="#/profile">Profile</a>
         </div>
       </div>
     </div>
