@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebaseConfig';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import './ChatBox.css';
 
@@ -9,16 +9,128 @@ export default function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState({});
   const messagesEndRef = useRef();
+  const presenceIntervalRef = useRef(null);
 
+  // Set user online status when component mounts
   useEffect(() => {
-    const q = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
-    const unsubscribe = onSnapshot(q, snapshot => {
+    if (!currentUser) return;
+
+    /**
+     * Sets the user's online status to true in Firestore
+     * Creates the user document if it doesn't exist
+     */
+    const setUserOnline = async () => {
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          // Update existing document
+          await updateDoc(userRef, {
+            isOnline: true,
+            lastActive: serverTimestamp()
+          });
+        } else {
+          // Create new document
+          await setDoc(userRef, {
+            isOnline: true,
+            lastActive: serverTimestamp(),
+            email: currentUser.email,
+            displayName: currentUser.email.split('@')[0]
+          });
+        }
+      } catch (error) {
+        console.error('Error setting user online:', error);
+      }
+    };
+
+    setUserOnline();
+
+    /**
+     * Set up periodic presence update (every 30 seconds)
+     * This helps to detect when a user is still active even if they don't send messages
+     */
+    presenceIntervalRef.current = setInterval(async () => {
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          lastActive: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error updating presence:', error);
+      }
+    }, 30000);
+
+    /**
+     * Handle page unload to set user offline
+     * This ensures the user is marked as offline even if they close the browser abruptly
+     */
+    const handleBeforeUnload = async () => {
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          isOnline: false,
+          lastActive: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error setting user offline:', error);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup function
+    return () => {
+      // Clear interval
+      if (presenceIntervalRef.current) {
+        clearInterval(presenceIntervalRef.current);
+      }
+      
+      // Remove event listener
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      
+      // Set user offline when component unmounts
+      handleBeforeUnload();
+    };
+  }, [currentUser]);
+
+  /**
+   * Set up listeners for messages and user online status changes
+   * This allows real-time updates of both messages and online status indicators
+   */
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Set up messages listener
+    const messagesQuery = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
+    const messagesUnsubscribe = onSnapshot(messagesQuery, snapshot => {
       setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
     });
-    return unsubscribe;
-  }, []);
+
+    // Set up online status listener
+    const usersQuery = collection(db, 'users');
+    const usersUnsubscribe = onSnapshot(usersQuery, snapshot => {
+      const usersStatus = {};
+      snapshot.forEach(doc => {
+        const userData = doc.data();
+        usersStatus[doc.id] = {
+          isOnline: userData.isOnline || false,
+          lastActive: userData.lastActive,
+          displayName: userData.displayName || userData.email?.split('@')[0] || 'Unknown'
+        };
+      });
+      setOnlineUsers(usersStatus);
+    });
+
+    // Cleanup both listeners when component unmounts
+    return () => {
+      messagesUnsubscribe();
+      usersUnsubscribe();
+    };
+  }, [currentUser]);
 
   const sendMessage = async e => {
     e.preventDefault();
@@ -49,16 +161,53 @@ export default function ChatBox() {
     return date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   };
 
+  /**
+   * Get a sorted list of online users
+   * Filters for users with isOnline: true and sorts by display name
+   */
+  const getSortedOnlineUsers = () => {
+    return Object.entries(onlineUsers)
+      .filter(([_, status]) => status.isOnline)
+      .sort(([_, a], [__, b]) => a.displayName.localeCompare(b.displayName));
+  };
+
   return (
     <div className="chat-container">
       {/* Chat Header */}
       <div className="chat-header">
         <div className="chat-header-avatar">
           {currentUser?.email?.charAt(0).toUpperCase() || 'U'}
+          {/* Online status indicator for current user */}
+          <div 
+            className={`online-status-indicator ${onlineUsers[currentUser?.uid]?.isOnline ? 'online' : 'offline'}`}
+            title={onlineUsers[currentUser?.uid]?.isOnline ? 'Online' : 'Offline'}
+          />
         </div>
         <div className="chat-header-info">
           <h1>Chat Room</h1>
           <p>{messages.length} Messages</p>
+        </div>
+      </div>
+
+      {/* Online Users Bar */}
+      <div className="online-users-bar">
+        <div className="online-users-label">Online Now:</div>
+        <div className="online-users-list">
+          {getSortedOnlineUsers().map(([userId, status]) => (
+            <div key={userId} className="online-user">
+              <div className="online-user-avatar">
+                {status.displayName.charAt(0).toUpperCase()}
+                <div 
+                  className="online-status-indicator online"
+                  title="Online"
+                />
+              </div>
+              <span className="online-user-name">{status.displayName}</span>
+            </div>
+          ))}
+          {getSortedOnlineUsers().length === 0 && (
+            <div className="no-online-users">No users online</div>
+          )}
         </div>
       </div>
 
@@ -86,6 +235,11 @@ export default function ChatBox() {
               {msg.userId !== currentUser.uid && (
                 <div className="message-avatar message-avatar-received">
                   {msg.userName.charAt(0).toUpperCase()}
+                  {/* Online status indicator for message sender */}
+                  <div 
+                    className={`online-status-indicator ${onlineUsers[msg.userId]?.isOnline ? 'online' : 'offline'}`}
+                    title={onlineUsers[msg.userId]?.isOnline ? 'Online' : 'Offline'}
+                  />
                 </div>
               )}
               <div className={`message-bubble ${msg.userId === currentUser.uid ? 'message-bubble-sent' : 'message-bubble-received'}`}>
@@ -97,6 +251,11 @@ export default function ChatBox() {
               {msg.userId === currentUser.uid && (
                 <div className="message-avatar message-avatar-sent">
                   {msg.userName.charAt(0).toUpperCase()}
+                  {/* Online status indicator for current user in their own message */}
+                  <div 
+                    className={`online-status-indicator ${onlineUsers[msg.userId]?.isOnline ? 'online' : 'offline'}`}
+                    title={onlineUsers[msg.userId]?.isOnline ? 'Online' : 'Offline'}
+                  />
                 </div>
               )}
             </div>
