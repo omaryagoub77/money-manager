@@ -3,6 +3,7 @@ import { db, deleteDoc, doc } from '../firebaseConfig';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import Alert from '../components/Alert';
 import './Loans.css';
 
 const CashoutPage = () => {
@@ -101,7 +102,7 @@ const CashoutPage = () => {
         status: 'pending', // pending, accepted, denied
         timestamp: serverTimestamp()
       });
-Accepted
+
       // Reset form
       setAmount('');
       setName('');
@@ -141,19 +142,20 @@ Accepted
 
   return (
     <div className="whatsapp-container">
-
+      <Header />
 
       <div className="main-content">
         <h1 className="page-title">Loan Request</h1>
+        
+        {/* Alerts */}
+        {error && <Alert type="error" message={error} />}
+        {success && <Alert type="success" message={success} />}
         
         {/* Cashout Form */}
         <div className="card animate-slideUp">
           <h2 className="card-title">New Request</h2>
           
           <form onSubmit={handleSubmit} className="form-group">
-            {error && <div className="alert alert-error">{error}</div>}
-            {success && <div className="alert alert-success">{success}</div>}
-            
             <div>
               <label className="form-label">Amount</label>
               <input
@@ -194,7 +196,14 @@ Accepted
               disabled={loading}
               className="form-button"
             >
-              {loading ? 'Sending...' : 'Send Request'}
+              {loading ? (
+                <>
+                  <div className="spinner"></div>
+                  Sending...
+                </>
+              ) : (
+                'Send Request'
+              )}
             </button>
           </form>
         </div>
@@ -230,7 +239,7 @@ Accepted
                   <div className="request-footer">
                     Requested on {formatDate(request.timestamp)}
                   </div>
-                 
+              
                 </div>
               ))}
             </div>

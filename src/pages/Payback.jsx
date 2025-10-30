@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
-import { collection, query, where, onSnapshot, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, serverTimestamp, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
-
 
 const PaybackLoansPage = () => {
   const { currentUser } = useAuth();
@@ -12,12 +11,12 @@ const PaybackLoansPage = () => {
   const [alert, setAlert] = useState(null);
   const [expandedLoanId, setExpandedLoanId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Form states
   const [paidAmount, setPaidAmount] = useState('');
   const [proofImage, setProofImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
-  
+
   // Cloudinary configuration
   const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME || "dlrxomdfh";
   const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET || "Shop-preset";
@@ -40,14 +39,14 @@ const PaybackLoansPage = () => {
           ...doc.data()
         });
       });
-      
+
       // Sort by timestamp (newest first)
       loans.sort((a, b) => {
         const aTime = a.timestamp?.toDate?.() || new Date(0);
         const bTime = b.timestamp?.toDate?.() || new Date(0);
         return bTime - aTime;
       });
-      
+
       setAcceptedLoans(loans);
       setFetching(false);
     }, (err) => {
@@ -92,7 +91,7 @@ const PaybackLoansPage = () => {
     }
 
     setProofImage(file);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -106,7 +105,7 @@ const PaybackLoansPage = () => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
-    
+
     try {
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
@@ -115,7 +114,7 @@ const PaybackLoansPage = () => {
           body: formData
         }
       );
-      
+
       const data = await response.json();
       return data.secure_url;
     } catch (error) {
@@ -127,28 +126,28 @@ const PaybackLoansPage = () => {
   // Handle form submission
   const handleSubmitPayment = async (e, loan) => {
     e.preventDefault();
-    
+
     // Validate inputs
     if (!paidAmount || parseFloat(paidAmount) <= 0) {
       showAlert('Please enter a valid amount', 'error');
       return;
     }
-    
+
     if (!proofImage) {
       showAlert('Please provide proof of payment', 'error');
       return;
     }
-    
+
     setSubmitting(true);
-    
+
     try {
       // Upload image to Cloudinary
       const imageUrl = await uploadImage(proofImage);
-      
+
       // Calculate total payable with 10% interest
       const interest = 0.10;
       const totalPayable = loan.amount + (loan.amount * interest);
-      
+
       // Update the loan document
       const loanRef = doc(db, 'loans', loan.id);
       await updateDoc(loanRef, {
@@ -159,13 +158,13 @@ const PaybackLoansPage = () => {
         paymentStatus: 'pending',
         paymentTimestamp: serverTimestamp()
       });
-      
+
       // Reset form
       setPaidAmount('');
       setProofImage(null);
       setImagePreview('');
       setExpandedLoanId(null);
-      
+
       showAlert('Payment proof submitted successfully!', 'success');
     } catch (err) {
       console.error('Error submitting payment:', err);
@@ -183,17 +182,17 @@ const PaybackLoansPage = () => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const day = date.getDate();
     const month = date.toLocaleString('default', { month: 'short' });
-    
+
     return `${hours}:${minutes} · ${day} ${month}`;
   };
 
   return (
     <div className="whatsapp-container">
       <Header />
-      
+
       {/* Alert Container */}
       {alert && (
-        <div 
+        <div
           className={`alert alert-${alert.type}`}
           onClick={() => setAlert(null)}
         >
@@ -203,11 +202,11 @@ const PaybackLoansPage = () => {
 
       <div className="main-content">
         <h1 className="page-title">Pay Back Loans</h1>
-        
+
         {/* Accepted Loans List */}
         <div className="card">
           <h2 className="card-title">Accepted Loans</h2>
-          
+
           {fetching ? (
             <div className="loading-indicator">
               <div className="loading-dots">
@@ -224,22 +223,51 @@ const PaybackLoansPage = () => {
                 const interest = 0.10;
                 const totalPayable = loan.amount + (loan.amount * interest);
                 const isExpanded = expandedLoanId === loan.id;
-                
+
+                // Determine if payment form should be disabled
+                const paymentSubmitted = loan.paymentStatus && loan.paymentStatus !== 'pending';
+
                 return (
                   <div key={loan.id} className="request-item animate-slideUp">
                     <div className="request-header">
                       <div className="request-info">
-                        <h3>Amount: ${loan.amount} + 10% interest = ${totalPayable.toFixed(2)}</h3>
+                        <h3>
+                          Amount: ${loan.amount} + 10% interest = ${totalPayable.toFixed(2)}
+                        </h3>
                         <p className="request-timestamp">Requested on {formatDate(loan.timestamp)}</p>
+                        <span className={`badge ${
+                          loan.paymentStatus === 'approved'
+                            ? 'badge-green'
+                            : loan.paymentStatus === 'denied'
+                            ? 'badge-red'
+                            : 'badge-yellow'
+                        }`}>
+                          {loan.paymentStatus ? loan.paymentStatus.charAt(0).toUpperCase() + loan.paymentStatus.slice(1) : 'Pending'}
+                        </span>
                       </div>
-                      <button 
+                      <button
                         className="form-button"
                         onClick={() => handlePayClick(loan.id)}
+                        disabled={paymentSubmitted}
                       >
-                        {isExpanded ? 'Cancel' : 'Pay'}
+                        {isExpanded ? 'Cancel' : paymentSubmitted ? 'Submitted' : 'Pay'}
                       </button>
                     </div>
-                    
+
+                    {/* Show previous payment info if submitted */}
+                    {paymentSubmitted && loan.paidAmount && (
+                      <div className="previous-payment">
+                        <p><strong>Paid Amount:</strong> ${loan.paidAmount}</p>
+                        {loan.proofImageUrl && (
+                          <img src={loan.proofImageUrl} alt="Proof" className="previous-proof" />
+                        )}
+                        <p><strong>Payment Date:</strong> {formatDate(loan.paymentTimestamp)}</p>
+                        {loan.paymentStatus === 'denied' && loan.reason && (
+                          <p className="denied-reason">Denied Reason: {loan.reason}</p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Payment Form */}
                     <div className={`payment-form ${isExpanded ? 'show' : ''}`}>
                       <form onSubmit={(e) => handleSubmitPayment(e, loan)} className="form-group">
@@ -253,9 +281,10 @@ const PaybackLoansPage = () => {
                             placeholder="Enter amount paid"
                             min="0"
                             step="0.01"
+                            disabled={paymentSubmitted}
                           />
                         </div>
-                        
+
                         <div>
                           <label className="form-label">Proof of Payment</label>
                           <input
@@ -263,18 +292,19 @@ const PaybackLoansPage = () => {
                             onChange={handleFileChange}
                             className="form-input"
                             accept="image/jpeg, image/png, image/webp"
+                            disabled={paymentSubmitted}
                           />
-                          
+
                           {imagePreview && (
                             <div className="image-preview">
                               <img src={imagePreview} alt="Proof of payment" />
                             </div>
                           )}
                         </div>
-                        
+
                         <button
                           type="submit"
-                          disabled={submitting}
+                          disabled={submitting || paymentSubmitted}
                           className="form-button"
                         >
                           {submitting ? 'Submitting...' : 'Submit Payment'}
@@ -288,7 +318,7 @@ const PaybackLoansPage = () => {
           )}
         </div>
       </div>
-      
+
       <style jsx>{`
         .payment-form {
           margin-top: 16px;
@@ -298,25 +328,58 @@ const PaybackLoansPage = () => {
           max-height: 0;
           transition: max-height 0.3s ease-out;
         }
-        
+
         .payment-form.show {
           max-height: 500px;
           transition: max-height 0.5s ease-in;
         }
-        
+
         .image-preview {
           margin-top: 12px;
           border-radius: 8px;
           overflow: hidden;
           max-width: 100%;
         }
-        
+
         .image-preview img {
           width: 100%;
           max-height: 200px;
           object-fit: cover;
           display: block;
         }
+
+        .previous-payment {
+          background: #f7f7f7;
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 12px;
+        }
+
+        .previous-payment img.previous-proof {
+          max-width: 100%;
+          max-height: 150px;
+          display: block;
+          margin-top: 6px;
+          border-radius: 6px;
+        }
+
+        .denied-reason {
+          color: #b91c1c;
+          margin-top: 6px;
+        }
+
+        .badge {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 500;
+          margin-top: 4px;
+        }
+
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-yellow { background: #fef3c7; color: #78350f; }
       `}</style>
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { db, deleteDoc, doc } from "../firebaseConfig";
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
-import Header from "../components/Header";
+import Alert from "../components/Alert";
 import "./DepositPage.css";
 
 export default function DepositPage() {
@@ -77,8 +77,8 @@ export default function DepositPage() {
     }
 
     setLoading(true);
-    setError("");
     setSuccess("");
+    setError("");
 
     try {
       // Upload to Cloudinary
@@ -135,7 +135,18 @@ export default function DepositPage() {
     }
   };
 
-
+  // get the status bg color of the deposit 
+    const getStatusClass = (status) => {
+    switch (status) {
+      case 'accepted':
+        return 'status-accepted';
+      case 'denied':
+        return 'status-denied';
+      case 'pending':
+      default:
+        return 'status-pending';
+    }
+  };
 
   // Format timestamp for display
   const formatTimestamp = (timestamp) => {
@@ -152,63 +163,13 @@ export default function DepositPage() {
 
   return (
     <div className="whatsapp-container">
-  
+      
+
 
       {/* Chat Container */}
       <div className="chat-container">
-        {/* Success/Error Messages */}
-        {error && (
-          <div className="alert alert-error">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="alert alert-success">
-            <span className="alert-success-icon">✓✓</span> {success}
-          </div>
-        )}
 
-        {/* Deposits History as Chat Bubbles */}
-        {fetchingDeposits ? (
-          <div className="loading-indicator">
-            <div className="loading-dots">
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-            </div>
-          </div>
-        ) : deposits.length === 0 ? (
-          <div className="empty-state">
-            No deposit history yet
-          </div>
-        ) : (
-          deposits.map((deposit) => (
-            <div key={deposit.id} className="message-bubble">
-              <div className="message-bubble-content">
-                <div className="message-bubble-bg">
-                  {deposit.imageUrl && (
-                    <div>
-                      <img 
-                        src={deposit.imageUrl} 
-                        alt="Deposit receipt" 
-                        className="message-image"
-                      />
-                    </div>
-                  )}
-                  <div className="message-text">
-                    <p className="message-amount">${deposit.amount}</p>
-                    <p className="message-note">{deposit.message}</p>
-                    <p className="message-timestamp">
-                      {formatTimestamp(deposit.timestamp)}
-                    </p>
-              
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-        {/* Deposit Form */}
+                {/* Deposit Form */}
         <div className="form-container">
           <h2 className="form-title">Submit New Deposit</h2>
           
@@ -248,10 +209,67 @@ export default function DepositPage() {
               disabled={loading}
               className="form-button"
             >
-              {loading ? "Submitting..." : "Submit Deposit"}
+              {loading ? (
+                <>
+                  <div className="spinner"></div>
+                  Submitting...
+                </>
+              ) : (
+                "Submit Deposit"
+              )}
             </button>
           </form>
         </div>
+        {/* Success/Error Messages */}
+        {error && <Alert type="error" message={error} />}
+        {success && <Alert type="success" message={success} />}
+
+        {/* Deposits History as Chat Bubbles */}
+        {fetchingDeposits ? (
+          <div className="loading-indicator">
+            <div className="loading-dots">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
+          </div>
+        ) : deposits.length === 0 ? (
+          <div className="empty-state">
+            No deposit history yet
+          </div>
+        ) : (
+          deposits.map((deposit) => (
+            <div key={deposit.id} className="message-bubble">
+              <div className="message-bubble-content">
+                <div className="message-bubble-bg">
+                  {deposit.imageUrl && (
+                    <div>
+                      <img 
+                        src={deposit.imageUrl} 
+                        alt="Deposit receipt" 
+                        className="message-image"
+                      />
+                    </div>
+                  )}
+                  <div className="message-text">
+                    <p className="message-amount">${deposit.amount}</p>
+                    <p className="message-note">{deposit.message}</p>
+ <div className={`request-status ${getStatusClass(deposit.status)}`}>
+                      {deposit.status}
+                    </div>                    <p className="message-timestamp">
+                      {formatTimestamp(deposit.timestamp)}
+                    </p>
+             
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+
+
+
+
 
       </div>
     </div>

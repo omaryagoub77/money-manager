@@ -1,142 +1,5 @@
 /* DepositPage.css — modern dashboard-inspired styles */
 
-/* Modern Alert System */
-.alert-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.alert {
-  min-width: 300px;
-  max-width: 400px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  pointer-events: auto;
-  cursor: pointer;
-  transform-origin: top right;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  opacity: 0;
-  transform: translateX(100%) scale(0.8);
-  border-left: 4px solid transparent;
-}
-
-.alert-show {
-  opacity: 1;
-  transform: translateX(0) scale(1);
-}
-
-.alert-hide {
-  opacity: 0;
-  transform: translateX(100%) scale(0.8);
-}
-
-.alert-success {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
-  color: white;
-  border-left-color: #10b981;
-}
-
-.alert-error {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 100%);
-  color: white;
-  border-left-color: #ef4444;
-}
-
-.alert-icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.alert-message {
-  flex-grow: 1;
-  font-weight: 500;
-  font-size: 15px;
-  line-height: 1.4;
-}
-
-.alert-close {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-
-.alert-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.alert-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 0 0 12px 12px;
-  overflow: hidden;
-}
-
-.alert-progress-bar {
-  height: 100%;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.7);
-  animation: progress 3s linear forwards;
-}
-
-@keyframes progress {
-  from { width: 100%; }
-  to { width: 0%; }
-}
-
-/* Success Icon */
-.alert-success .alert-icon::before {
-  content: "✓";
-  font-size: 16px;
-  font-weight: bold;
-}
-
-/* Error Icon */
-.alert-error .alert-icon::before {
-  content: "✕";
-  font-size: 16px;
-  font-weight: bold;
-}
-
-/* Mobile Responsive */
-@media (max-width: 480px) {
-  .alert-container {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-  }
-  
-  .alert {
-    min-width: auto;
-    max-width: none;
-  }
-}
 :root{
   --bg:#f5f7fb; 
   --card-bg:#ffffff; 
@@ -230,6 +93,43 @@ html,body{height:100%}
   gap:24px;
 }
 
+
+/* Status badges */
+.status-pending{
+  background:var(--warning-bg);
+  color:var(--warning);
+  padding:6px 12px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.status-accepted{
+  background:var(--success-bg);
+  color:var(--success);
+  padding:6px 12px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.status-denied{
+  background:var(--error-bg);
+  color:var(--error);
+  padding:6px 12px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+  .request-status{
+    align-self:flex-start;
+    margin-top:8px;
+  }
 /* Cards */
 .card{
   background:var(--card-bg);
@@ -316,6 +216,10 @@ html,body{height:100%}
   transition:all 0.25s ease;
   font-size:0.95rem;
   margin-top:8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .form-button:hover{
   transform:translateY(-3px);
@@ -325,31 +229,6 @@ html,body{height:100%}
   opacity:0.7;
   cursor:not-allowed;
   transform:none;
-}
-
-/* Alerts */
-.alert{
-  padding:12px 16px;
-  border-radius:12px;
-  font-size:0.875rem;
-  margin-bottom:16px;
-  font-weight:500;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.alert-error{
-  background-color:var(--error-bg);
-  color:var(--error);
-  border-left:4px solid var(--error);
-}
-.alert-success{
-  background-color:var(--success-bg);
-  color:var(--success);
-  border-left:4px solid var(--success);
-}
-.alert-success-icon{
-  font-weight:bold;
 }
 
 /* Message Bubbles */

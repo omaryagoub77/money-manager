@@ -239,30 +239,6 @@ html,body{height:100%}
   font-size:1rem;
 }
 
-/* Alerts */
-.alert{
-  padding:12px 16px;
-  border-radius:12px;
-  font-size:0.875rem;
-  font-weight:500;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.alert-error{
-  background-color:var(--error-bg);
-  color:var(--error);
-  border-left:4px solid var(--error);
-}
-.alert-success{
-  background-color:var(--success-bg);
-  color:var(--success);
-  border-left:4px solid var(--success);
-}
-.alert-success-icon{
-  font-weight:bold;
-}
-
 /* Loading */
 .loading-spinner{
   display:inline-flex;
