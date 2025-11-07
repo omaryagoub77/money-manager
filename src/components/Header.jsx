@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {User} from "lucide-react"
 import './Header.css';
 
 const Header = () => {
@@ -55,7 +56,7 @@ const Header = () => {
     { path: '/chat', label: 'Chat' },
     { path: '/loans', label: 'Loans' },
     { path: '/payback', label: 'Payback' },
-    { path: '/profile', label: 'Profile' }
+    
   ];
 
   return (
@@ -82,6 +83,7 @@ const Header = () => {
                   <Link to={link.path} className={`nav-link ${isActive(link.path) ? 'active' : ''}`}>
                     {link.label}
                   </Link>
+                    
                 </li>
               ))}
             </ul>
@@ -89,8 +91,13 @@ const Header = () => {
             <div className="auth-controls">
               {currentUser ? (
                 <>
-                  <span className="user-email">{currentUser.email.split('@')[0]}</span>
-                  <button className="btn-ghost" onClick={handleLogout}>Sign Out</button>
+                  <button className="sign-out-btn" onClick={handleLogout}>Sign Out</button>
+                  <div>
+                     <Link to={"profile"} className={`nav-link ${isActive("profile") ? 'active' : ''}`}>
+                  
+                  <span className="user-email"><User/></span>
+                  </Link>
+                  </div>
                 </>
               ) : (
                 <>

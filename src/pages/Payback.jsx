@@ -348,9 +348,7 @@ function PaybackLoansPage() {
                           <img src={loan.proofImageUrl} alt="Proof" className="previous-proof" />
                         )}
                         <p><strong>Payment Date:</strong> {formatDate(loan.paymentTimestamp)}</p>
-                        {loan.paymentStatus === 'denied' && loan.reason && (
-                          <p className="denied-reason">Denied Reason: {loan.reason}</p>
-                        )}
+
                       </div>
                     )}
 

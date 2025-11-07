@@ -510,16 +510,7 @@ const ProfilePage = () => {
           <div className="card-body">
             {error && <Alert type="error" message={error} />}
             {success && <Alert type="success" message={success} />}
-            
-            {/* Tailwind CSS Test - Added here to verify Tailwind is working */}
-            <div className="bg-blue-500 text-white p-4 rounded-lg mb-4">
-              <h3 className="font-bold text-lg">Tailwind CSS Test</h3>
-              <p>If you see this blue box with white text, Tailwind CSS is working!</p>
-              <div className="mt-2 flex gap-2">
-                <span className="bg-white text-blue-500 px-2 py-1 rounded text-sm">Button 1</span>
-                <span className="bg-green-500 px-2 py-1 rounded text-sm">Button 2</span>
-              </div>
-            </div>
+        
             
             <div className="profile-header">
               <div className="profile-avatar">
