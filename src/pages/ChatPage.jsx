@@ -3,7 +3,7 @@ import ChatBox from '../components/Chat/ChatBox'
 
 const ChatPage = () => {
     return (
-        <div style={{marginTop: "20px"}} >
+        <div style={{marginTop: "65px"}} >
             
             <ChatBox />
         </div>

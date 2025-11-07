@@ -7,6 +7,7 @@ html, body {
 
 .whatsapp-container {
   min-height: 100vh;
+  margin-top: 70px;
   background: var(--bg-start);
   font-family: var(--font-sans);
   color: var(--text);

@@ -252,7 +252,7 @@ function PaybackLoansPage() {
 
   return (
     <div className="whatsapp-container">
-      <Header />
+      {/* <Header /> */}
 
       {/* Alert Container */}
       {alert && (
@@ -268,7 +268,7 @@ function PaybackLoansPage() {
         <h1 className="page-title">Pay Back Loans</h1>
 
         {/* Accepted Loans List */}
-        <div className="card">
+        <div className="car">
           <h2 className="card-title">Accepted Loans</h2>
 
           {fetching || loadingInterest ? (

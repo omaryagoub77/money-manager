@@ -4,6 +4,7 @@
 .home-container {
   max-width: var(--container-max-width);
   margin: 0 auto;
+  margin-top: 50px;
   padding: var(--content-padding-mobile);
 }
 

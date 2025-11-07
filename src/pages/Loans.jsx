@@ -142,7 +142,7 @@ const CashoutPage = () => {
 
   return (
     <div className="whatsapp-container">
-      <Header />
+      {/* <Header /> */}
 
       <div className="main-content">
         <h1 className="page-title">Loan Request</h1>
