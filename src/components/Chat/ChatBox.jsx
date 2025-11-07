@@ -13,6 +13,19 @@ export default function ChatBox() {
   const messagesEndRef = useRef();
   const presenceIntervalRef = useRef(null);
 
+  // Helper function to determine if a user is online based on lastActive timestamp
+  const isUserOnline = (lastActive) => {
+    if (!lastActive) return false;
+    
+    // Convert Firestore timestamp to JavaScript Date
+    const lastActiveDate = lastActive.toDate ? lastActive.toDate() : new Date(lastActive);
+    const now = new Date();
+    
+    // Consider user online if lastActive is within the last 60 seconds
+    const timeDiffInMs = now - lastActiveDate;
+    return timeDiffInMs < 60000; // 60 seconds in milliseconds
+  };
+
   // Set user online status when component mounts
   useEffect(() => {
     if (!currentUser) return;
@@ -56,6 +69,7 @@ export default function ChatBox() {
       try {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, {
+          isOnline: true,
           lastActive: serverTimestamp()
         });
       } catch (error) {
@@ -163,51 +177,32 @@ export default function ChatBox() {
 
   /**
    * Get a sorted list of online users
-   * Filters for users with isOnline: true and sorts by display name
+   * Filters for users with lastActive timestamp within the last 60 seconds
+   * and sorts by display name alphabetically
    */
   const getSortedOnlineUsers = () => {
     return Object.entries(onlineUsers)
-      .filter(([_, status]) => status.isOnline)
+      .filter(([_, status]) => isUserOnline(status.lastActive))
       .sort(([_, a], [__, b]) => a.displayName.localeCompare(b.displayName));
   };
 
   return (
     <div className="chat-container">
-      {/* Chat Header */}
-      <div className="chat-header">
+ 
+      {/* Online Users Bar */}
+         <div className="chat-header">
         <div className="chat-header-avatar">
           {currentUser?.email?.charAt(0).toUpperCase() || 'U'}
           {/* Online status indicator for current user */}
           <div 
-            className={`online-status-indicator ${onlineUsers[currentUser?.uid]?.isOnline ? 'online' : 'offline'}`}
-            title={onlineUsers[currentUser?.uid]?.isOnline ? 'Online' : 'Offline'}
+            className={`online-status-indicator ${isUserOnline(onlineUsers[currentUser?.uid]?.lastActive) ? 'online' : 'offline'}`}
+            title={isUserOnline(onlineUsers[currentUser?.uid]?.lastActive) ? 'Online' : 'Offline'}
           />
         </div>
         <div className="chat-header-info">
           <h1>Chat Room</h1>
           <p>{messages.length} Messages</p>
-        </div>
-      </div>
-
-      {/* Online Users Bar */}
-      <div className="online-users-bar">
-        <div className="online-users-label">Online Now:</div>
-        <div className="online-users-list">
-          {getSortedOnlineUsers().map(([userId, status]) => (
-            <div key={userId} className="online-user">
-              <div className="online-user-avatar">
-                {status.displayName.charAt(0).toUpperCase()}
-                <div 
-                  className="online-status-indicator online"
-                  title="Online"
-                />
-              </div>
-              <span className="online-user-name">{status.displayName}</span>
-            </div>
-          ))}
-          {getSortedOnlineUsers().length === 0 && (
-            <div className="no-online-users">No users online</div>
-          )}
+          <p>Online Users: {getSortedOnlineUsers().length}</p>
         </div>
       </div>
 
@@ -237,8 +232,8 @@ export default function ChatBox() {
                   {msg.userName.charAt(0).toUpperCase()}
                   {/* Online status indicator for message sender */}
                   <div 
-                    className={`online-status-indicator ${onlineUsers[msg.userId]?.isOnline ? 'online' : 'offline'}`}
-                    title={onlineUsers[msg.userId]?.isOnline ? 'Online' : 'Offline'}
+                    className={`online-status-indicator ${isUserOnline(onlineUsers[msg.userId]?.lastActive) ? 'online' : 'offline'}`}
+                    title={isUserOnline(onlineUsers[msg.userId]?.lastActive) ? 'Online' : 'Offline'}
                   />
                 </div>
               )}
@@ -253,8 +248,8 @@ export default function ChatBox() {
                   {msg.userName.charAt(0).toUpperCase()}
                   {/* Online status indicator for current user in their own message */}
                   <div 
-                    className={`online-status-indicator ${onlineUsers[msg.userId]?.isOnline ? 'online' : 'offline'}`}
-                    title={onlineUsers[msg.userId]?.isOnline ? 'Online' : 'Offline'}
+                    className={`online-status-indicator ${isUserOnline(onlineUsers[msg.userId]?.lastActive) ? 'online' : 'offline'}`}
+                    title={isUserOnline(onlineUsers[msg.userId]?.lastActive) ? 'Online' : 'Offline'}
                   />
                 </div>
               )}
