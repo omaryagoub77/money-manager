@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
-import { collection, query, where, onSnapshot, serverTimestamp, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, where, onSnapshot, query, orderBy, limit, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import './Loans.css';
 
 function PaybackLoansPage() {
   const { currentUser } = useAuth();
@@ -11,6 +12,8 @@ function PaybackLoansPage() {
   const [alert, setAlert] = useState(null);
   const [expandedLoanId, setExpandedLoanId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [interestRate, setInterestRate] = useState(0.10); // Default to 0.10 as fallback
+  const [loadingInterest, setLoadingInterest] = useState(true);
 
   // Form states
   const [paidAmount, setPaidAmount] = useState('');
@@ -21,41 +24,89 @@ function PaybackLoansPage() {
   const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME || "dlrxomdfh";
   const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET || "Shop-preset";
 
+  // Fetch interest rate from Firestore with real-time updates
+  useEffect(() => {
+    const q = query(collection(db, 'interest'), orderBy('timestamp', 'desc'), limit(1));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setInterestRate(snapshot.docs[0].data().interest);
+      }
+      setLoadingInterest(false);
+    }, (error) => {
+      console.error('Error fetching interest rate:', error);
+      showAlert('Failed to fetch interest rate', 'error');
+      setLoadingInterest(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Fetch accepted loans
   useEffect(() => {
     if (!currentUser) return;
-
+    
     const q = query(
       collection(db, 'loans'),
       where('userId', '==', currentUser.uid),
       where('status', '==', 'accepted')
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const loans = [];
-      snapshot.forEach((doc) => {
-        loans.push({
+    
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const loansData = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
-        });
-      });
-
-      // Sort by timestamp (newest first)
-      loans.sort((a, b) => {
-        const aTime = a.timestamp?.toDate?.() || new Date(0);
-        const bTime = b.timestamp?.toDate?.() || new Date(0);
-        return bTime - aTime;
-      });
-
-      setAcceptedLoans(loans);
-      setFetching(false);
-    }, (err) => {
-      console.error('Error fetching accepted loans:', err);
-      setFetching(false);
-    });
-
+          ...doc.data(),
+        }));
+        console.log("Loans fetched:", loansData.length);
+        
+        // Sort loans by priority
+        const sortedLoans = sortLoansByPriority(loansData);
+        setAcceptedLoans(sortedLoans);
+        setFetching(false);
+      },
+      (error) => {
+        console.error('Error fetching accepted loans:', error);
+        showAlert('Failed to fetch accepted loans', 'error');
+        setFetching(false);
+      }
+    );
+    
     return () => unsubscribe();
   }, [currentUser]);
+
+  // Function to sort loans by priority
+  const sortLoansByPriority = (loans) => {
+    return [...loans].sort((a, b) => {
+      // Check if loan is new (created within last 24 hours)
+      const isNewA = isNewLoan(a.timestamp);
+      const isNewB = isNewLoan(b.timestamp);
+      
+      // Check if loan is awaiting approval
+      const isAwaitingA = a.paidAmount && parseFloat(a.paidAmount) > 0 && a.paymentStatus === 'pending';
+      const isAwaitingB = b.paidAmount && parseFloat(b.paidAmount) > 0 && b.paymentStatus === 'pending';
+      
+      // Priority order: New loans > Awaiting approval > Others
+      if (isNewA && !isNewB) return -1;
+      if (!isNewA && isNewB) return 1;
+      
+      if (isAwaitingA && !isAwaitingB) return -1;
+      if (!isAwaitingA && isAwaitingB) return 1;
+      
+      // If both have same priority, sort by timestamp (newest first)
+      const timeA = a.timestamp?.toDate?.() || new Date(0);
+      const timeB = b.timestamp?.toDate?.() || new Date(0);
+      return timeB - timeA;
+    });
+  };
+
+  // Check if loan is new (created within last 24 hours)
+  const isNewLoan = (timestamp) => {
+    if (!timestamp) return false;
+    const loanDate = timestamp.toDate();
+    const now = new Date();
+    const diffInHours = (now - loanDate) / (1000 * 60 * 60);
+    return diffInHours < 24;
+  };
 
   // Show alert with auto-dismiss
   const showAlert = (message, type) => {
@@ -135,9 +186,8 @@ function PaybackLoansPage() {
   const handleSubmitPayment = async (e, loan) => {
     e.preventDefault();
 
-    // Calculate total payable with 10% interest
-    const interest = 0.10;
-    const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * interest));
+    // Calculate total payable with dynamic interest rate
+    const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * (interestRate)));
 
     // Validate that paid amount matches total payable
     if (!isAmountValid(paidAmount, totalPayable)) {
@@ -165,7 +215,7 @@ function PaybackLoansPage() {
       // Update the loan document
       const loanRef = doc(db, 'loans', loan.id);
       await updateDoc(loanRef, {
-        interest: interest,
+        interest: interestRate,
         totalPayable: totalPayable,
         paidAmount: parseFloat(paidAmount),
         proofImageUrl: imageUrl,
@@ -221,46 +271,65 @@ function PaybackLoansPage() {
         <div className="card">
           <h2 className="card-title">Accepted Loans</h2>
 
-          {fetching ? (
+          {fetching || loadingInterest ? (
             <div className="loading-indicator">
               <div className="loading-dots">
                 <div className="loading-dot"></div>
                 <div className="loading-dot"></div>
                 <div className="loading-dot"></div>
               </div>
+              {loadingInterest && <p className="loading-text">Loading interest rate...</p>}
             </div>
           ) : acceptedLoans.length === 0 ? (
-            <p className="empty-state">No accepted loans to pay back yet.</p>
+            <p className="empty-state">You currently have no accepted loans to pay back. Keep an eye here!</p>
           ) : (
             <div className="request-list">
               {acceptedLoans.map((loan) => {
-                const interest = 0.10;
-                const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * interest));
+                const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * interestRate));
                 const isExpanded = expandedLoanId === loan.id;
+                const newLoan = isNewLoan(loan.timestamp);
 
                 // Determine if payment form should be disabled
-                const paymentSubmitted = loan.paymentStatus && loan.paymentStatus !== 'pending';
+                const paymentSubmitted = loan.paidAmount && parseFloat(loan.paidAmount) > 0;
+                const awaitingApproval = paymentSubmitted && loan.paymentStatus === 'pending';
                 
                 // Check if the entered amount is valid
                 const amountValid = isAmountValid(paidAmount, totalPayable);
+                
+                // Determine status badge class and text
+                let statusClass = 'badge-yellow';
+                let statusText = 'Pending';
+                
+                if (loan.paymentStatus === 'approved') {
+                  statusClass = 'badge-green';
+                  statusText = 'Approved';
+                } else if (loan.paymentStatus === 'denied') {
+                  statusClass = 'badge-red';
+                  statusText = 'Denied';
+                } else if (awaitingApproval) {
+                  statusClass = 'badge-blue';
+                  statusText = 'Paid (Awaiting Approval)';
+                }
 
                 return (
-                  <div key={loan.id} className="request-item animate-slideUp">
+                  <div key={loan.id} className={`request-item animate-slideUp ${newLoan ? 'new-loan' : ''} ${awaitingApproval ? 'awaiting-approval' : ''}`}>
                     <div className="request-header">
                       <div className="request-info">
                         <h3>
-                          Amount: ${loan.amount} + 10% interest = ${totalPayable.toFixed(2)}
+                          Amount: ${loan.amount} + {interestRate.toFixed(2)}% interest = ${totalPayable.toFixed(2)}
+                          {newLoan && <span className="new-badge">NEW</span>}
+                          {awaitingApproval && <span className="awaiting-badge">AWAITING APPROVAL</span>}
                         </h3>
+
                         <p className="request-timestamp">Requested on {formatDate(loan.timestamp)}</p>
-                        <span className={`badge ${
-                          loan.paymentStatus === 'approved'
-                            ? 'badge-green'
-                            : loan.paymentStatus === 'denied'
-                            ? 'badge-red'
-                            : 'badge-yellow'
-                        }`}>
-                          {loan.paymentStatus ? loan.paymentStatus.charAt(0).toUpperCase() + loan.paymentStatus.slice(1) : 'Pending'}
+                        <span className={`badge ${statusClass}`}>
+                          {statusText}
                         </span>
+                        {awaitingApproval && (
+                          <p className="payment-awaiting-text">
+                            Your payment has been submitted and is awaiting admin approval.
+                          </p>
+                        )}
                       </div>
                       <button
                         className="form-button"
@@ -272,7 +341,7 @@ function PaybackLoansPage() {
                     </div>
 
                     {/* Show previous payment info if submitted */}
-                    {paymentSubmitted && loan.paidAmount && (
+                    {paymentSubmitted && (
                       <div className="previous-payment">
                         <p><strong>Paid Amount:</strong> ${loan.paidAmount}</p>
                         {loan.proofImageUrl && (
@@ -291,7 +360,7 @@ function PaybackLoansPage() {
                         <div className="amount-info">
                           <p className="total-payable">
                             <strong>Total Amount Due:</strong> ${totalPayable.toFixed(2)}
-                            <span className="interest-info">(Loan: ${loan.amount} + 10% Interest: ${(loan.amount * interest).toFixed(2)})</span>
+                            <span className="interest-info">(Loan: ${loan.amount} + {(interestRate * 100).toFixed(0)}% Interest: ${(loan.amount * interestRate).toFixed(2)})</span>
                           </p>
                         </div>
                         
@@ -361,7 +430,7 @@ function PaybackLoansPage() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .payment-form {
           margin-top: 16px;
           padding-top: 16px;
@@ -422,6 +491,13 @@ function PaybackLoansPage() {
         .badge-green { background: #d1fae5; color: #065f46; }
         .badge-red { background: #fee2e2; color: #991b1b; }
         .badge-yellow { background: #fef3c7; color: #78350f; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        
+        .payment-awaiting-text {
+          margin-top: 4px;
+          font-size: 12px;
+          color: #64748b;
+        }
         
         .amount-info {
           margin-bottom: 12px;
@@ -468,6 +544,61 @@ function PaybackLoansPage() {
         .disabled-button {
           background-color: #9ca3af !important;
           cursor: not-allowed !important;
+        }
+        
+        .loading-text {
+          text-align: center;
+          margin-top: 10px;
+          color: #64748b;
+          font-size: 14px;
+        }
+        
+        /* New loan styles */
+        .new-loan {
+          border-left: 4px solid #10b981;
+          background: linear-gradient(to right, rgba(16, 185, 129, 0.05), transparent);
+        }
+        
+        .new-badge {
+          display: inline-block;
+          margin-left: 10px;
+          padding: 2px 8px;
+          background-color: #10b981;
+          color: white;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: bold;
+          animation: pulse 2s infinite;
+        }
+        
+        /* Awaiting approval styles */
+        .awaiting-approval {
+          border-left: 4px solid #3b82f6;
+          background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+        }
+        
+        .awaiting-badge {
+          display: inline-block;
+          margin-left: 10px;
+          padding: 2px 8px;
+          background-color: #3b82f6;
+          color: white;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: bold;
+          animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+          }
         }
       `}</style>
     </div>

@@ -1,37 +1,97 @@
 /* design.vars.css — design tokens for Money Box
    Theme: light glassmorphism + blue accent
+   Mobile-first responsive design system
 */
-:root{
+:root {
+  /* Colors */
   --accent: #6366f1;
   --accent-2: #4f46e5;
   --accent-light: #818cf8;
   --text: #1f2937;
-  --muted: #6b7280;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
   --bg-start: #f5f7fb;
   --bg-end: #e9eff5;
   --card-bg: rgba(255,255,255,0.86);
   --glass: rgba(255,255,255,0.8);
   --glass-strong: rgba(255,255,255,0.92);
-  --shadow: 0 4px 20px rgba(0,0,0,0.05);
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --container-width: 1100px;
-  --font-sans: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  --transition-fast: 160ms;
-  --border: #e5e7eb;
-  --success: #10b981;
+  
+  /* Status Colors */
+  --success: #16a34a;
   --warning: #f59e0b;
-  --error: #ef4444;
+  --danger: #ef4444;
+  --info: #3b82f6;
   --success-bg: #ecfdf5;
   --warning-bg: #fffbeb;
   --error-bg: #fef2f2;
-  --elevation: 0 4px 20px rgba(0,0,0,0.08);
-  --elevation-hover: 0 10px 25px rgba(0,0,0,0.1);
+  --info-bg: #eff6ff;
+  
+  /* Borders */
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.05);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,0.05);
+  --shadow-xl: 0 12px 24px rgba(0,0,0,0.05);
+  
+  /* Spacing - Mobile-first scale */
+  --spacing-xxs: 0.25rem;  /* 4px */
+  --spacing-xs: 0.5rem;   /* 8px */
+  --spacing-sm: 0.75rem;  /* 12px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-2xl: 3rem;    /* 48px */
+  --spacing-3xl: 4rem;    /* 64px */
+  
+  /* Typography */
+  --font-sans: 'Inter', 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs: clamp(0.65rem, 1.5vw, 0.75rem);
+  --font-size-sm: clamp(0.75rem, 2vw, 0.875rem);
+  --font-size-base: clamp(0.875rem, 2.5vw, 1rem);
+  --font-size-lg: clamp(1rem, 3vw, 1.125rem);
+  --font-size-xl: clamp(1.125rem, 3.5vw, 1.25rem);
+  --font-size-2xl: clamp(1.25rem, 4vw, 1.5rem);
+  --font-size-3xl: clamp(1.5rem, 5vw, 1.875rem);
+  --font-size-4xl: clamp(1.875rem, 6vw, 2.25rem);
+  --font-size-5xl: clamp(2.25rem, 7vw, 3rem);
+  
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+  
+  /* Layout */
+  --container-max-width: 1200px;
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 72px;
+  --header-height: 64px;
+  --content-padding-mobile: var(--spacing-md);
+  --content-padding-tablet: var(--spacing-lg);
+  --content-padding-desktop: var(--spacing-xl);
 }
 
-/* Utility color helpers */
-:root{
-  --success: #16a34a;
-  --danger: #ef4444;
-  --warning: #f59e0b;
+/* Tablet and above */
+@media (min-width: 768px) {
+  :root {
+    --content-padding-mobile: var(--spacing-lg);
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1024px) {
+  :root {
+    --content-padding-mobile: var(--spacing-xl);
+  }
 }
