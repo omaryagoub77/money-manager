@@ -126,8 +126,11 @@ const Header = () => {
         <div className="mobile-auth-controls">
           {currentUser ? (
             <>
-              <div className="user-email mb-2">{currentUser.email}</div>
-              <button className="btn btn-block" onClick={handleLogout}>Sign Out</button>
+             <Link to={"profile"} className={`nav-link ${isActive("profile") ? 'active' : ''}`}>
+                  
+              <div className="user-email mb-2">{currentUser?.email?.slice(0,1).toLowerCase() || 'U'}</div>
+                  </Link>
+              <button className=" sign-out-btn" onClick={handleLogout}>Sign Out</button>
             </>
           ) : (
             <>
