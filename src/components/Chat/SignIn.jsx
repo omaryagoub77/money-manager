@@ -31,7 +31,16 @@ export default function SignIn() {
         {error && <div className="auth-error">{error}</div>}
         <input type="email" ref={emailRef} placeholder="Email" required className="auth-input"/>
         <input type="password" ref={passwordRef} placeholder="Password" required className="auth-input"/>
-        <button disabled={loading} className="auth-button">Sign In</button>
+        <button disabled={loading} className="auth-button">
+          {loading ? (
+            <>
+              <span className="spinner"></span>
+              Signing In...
+            </>
+          ) : (
+            "Sign In"
+          )}
+        </button>
         <p className="auth-footer">
           Don't have an account? <Link to="/signup" className="auth-link">Sign Up</Link>
         </p>

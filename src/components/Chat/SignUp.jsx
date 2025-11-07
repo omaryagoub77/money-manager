@@ -36,7 +36,16 @@ export default function SignUp() {
         <input type="email" ref={emailRef} placeholder="Email" required className="auth-input"/>
         <input type="password" ref={passwordRef} placeholder="Password" required className="auth-input"/>
         <input type="password" ref={passwordConfirmRef} placeholder="Confirm Password" required className="auth-input"/>
-        <button disabled={loading} className="auth-button">Sign Up</button>
+        <button disabled={loading} className="auth-button">
+          {loading ? (
+            <>
+              <span className="spinner"></span>
+              Signing Up...
+            </>
+          ) : (
+            "Sign Up"
+          )}
+        </button>
         <p className="auth-footer">
           Already have an account? <Link to="/signin" className="auth-link">Sign In</Link>
         </p>
