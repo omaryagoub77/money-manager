@@ -9,6 +9,7 @@ const SignUp = lazy(() => import('./components/Chat/SignUp'));
 const DepositPage = lazy(() => import('./pages/DepositPage'));
 const Payback = lazy(() => import('./pages/Payback'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Home = lazy(() => import('./pages/Home'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const Loans = lazy(() => import('./pages/Loans'));
@@ -29,6 +30,7 @@ function App() {
           <Route path="/payback" element={<PrivateRoute><Payback /></PrivateRoute>} />
           <Route path="/test" element={<TestTailwind />} />
           <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         </Routes>
       </Suspense>
     </AuthProvider>

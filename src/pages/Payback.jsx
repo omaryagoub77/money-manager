@@ -24,12 +24,16 @@ function PaybackLoansPage() {
   const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME || "dlrxomdfh";
   const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET || "Shop-preset";
 
-  // Fetch interest rate from Firestore with real-time updates
+  // Fetch interest rate from Firestore specific document path with real-time updates
   useEffect(() => {
-    const q = query(collection(db, 'interest'), orderBy('timestamp', 'desc'), limit(1));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        setInterestRate(snapshot.docs[0].data().interest);
+    // FIXED: Fetch from specific document path interest/globalRate
+    const unsubscribe = onSnapshot(doc(db, 'interest', 'globalRate'), (doc) => {
+      if (doc.exists()) {
+        // FIXED: Convert from percentage (10) to decimal (0.10)
+        setInterestRate(Number(doc.data().interest) / 100);
+      } else {
+        console.error('Global interest rate document not found');
+        showAlert('Global interest rate not found', 'error');
       }
       setLoadingInterest(false);
     }, (error) => {
@@ -82,8 +86,8 @@ function PaybackLoansPage() {
       const isNewB = isNewLoan(b.timestamp);
       
       // Check if loan is awaiting approval
-      const isAwaitingA = a.paidAmount && parseFloat(a.paidAmount) > 0 && a.paymentStatus === 'pending';
-      const isAwaitingB = b.paidAmount && parseFloat(b.paidAmount) > 0 && b.paymentStatus === 'pending';
+      const isAwaitingA = a.paidAmount && Number(a.paidAmount) > 0 && a.paymentStatus === 'pending';
+      const isAwaitingB = b.paidAmount && Number(b.paidAmount) > 0 && b.paymentStatus === 'pending';
       
       // Priority order: New loans > Awaiting approval > Others
       if (isNewA && !isNewB) return -1;
@@ -177,8 +181,8 @@ function PaybackLoansPage() {
   // Check if paid amount matches total payable (with small tolerance for floating-point differences)
   const isAmountValid = (paid, total) => {
     if (!paid || !total) return false;
-    const paidValue = parseFloat(paid);
-    const totalValue = parseFloat(total);
+    const paidValue = Number(paid);
+    const totalValue = Number(total);
     return Math.abs(paidValue - totalValue) < 0.01; // Allow differences within $0.01
   };
 
@@ -186,8 +190,9 @@ function PaybackLoansPage() {
   const handleSubmitPayment = async (e, loan) => {
     e.preventDefault();
 
-    // Calculate total payable with dynamic interest rate
-    const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * (interestRate)));
+    // Calculate total payable with proper number conversion
+    const loanAmount = Number(loan.amount);
+    const totalPayable = loanAmount + (loanAmount * interestRate);
 
     // Validate that paid amount matches total payable
     if (!isAmountValid(paidAmount, totalPayable)) {
@@ -196,7 +201,7 @@ function PaybackLoansPage() {
     }
 
     // Validate inputs
-    if (!paidAmount || parseFloat(paidAmount) <= 0) {
+    if (!paidAmount || Number(paidAmount) <= 0) {
       showAlert('Please enter a valid amount', 'error');
       return;
     }
@@ -217,7 +222,7 @@ function PaybackLoansPage() {
       await updateDoc(loanRef, {
         interest: interestRate,
         totalPayable: totalPayable,
-        paidAmount: parseFloat(paidAmount),
+        paidAmount: Number(paidAmount),
         proofImageUrl: imageUrl,
         paymentStatus: 'pending',
         paymentTimestamp: serverTimestamp()
@@ -285,12 +290,14 @@ function PaybackLoansPage() {
           ) : (
             <div className="request-list">
               {acceptedLoans.map((loan) => {
-                const totalPayable = loan.totalPayable || (loan.amount + (loan.amount * interestRate));
+                // Calculate total payable with proper number conversion
+                const loanAmount = Number(loan.amount);
+                const totalPayable = loanAmount + (loanAmount * interestRate);
                 const isExpanded = expandedLoanId === loan.id;
                 const newLoan = isNewLoan(loan.timestamp);
 
                 // Determine if payment form should be disabled
-                const paymentSubmitted = loan.paidAmount && parseFloat(loan.paidAmount) > 0;
+                const paymentSubmitted = loan.paidAmount && Number(loan.paidAmount) > 0;
                 const awaitingApproval = paymentSubmitted && loan.paymentStatus === 'pending';
                 
                 // Check if the entered amount is valid
@@ -316,7 +323,8 @@ function PaybackLoansPage() {
                     <div className="request-header">
                       <div className="request-info">
                         <h3>
-                          Amount: ${loan.amount} + {interestRate.toFixed(2)}% interest = ${totalPayable.toFixed(2)}
+                          {/* Display amounts with proper calculation */}
+                          Amount: ${loanAmount.toFixed(2)} + {(interestRate * 100).toFixed(0)}% interest = ${totalPayable.toFixed(2)}
                           {newLoan && <span className="new-badge">NEW</span>}
                           {awaitingApproval && <span className="awaiting-badge">AWAITING APPROVAL</span>}
                         </h3>
@@ -343,7 +351,7 @@ function PaybackLoansPage() {
                     {/* Show previous payment info if submitted */}
                     {paymentSubmitted && (
                       <div className="previous-payment">
-                        <p><strong>Paid Amount:</strong> ${loan.paidAmount}</p>
+                        <p><strong>Paid Amount:</strong> ${Number(loan.paidAmount).toFixed(2)}</p>
                         {loan.proofImageUrl && (
                           <img src={loan.proofImageUrl} alt="Proof" className="previous-proof" />
                         )}
@@ -358,7 +366,8 @@ function PaybackLoansPage() {
                         <div className="amount-info">
                           <p className="total-payable">
                             <strong>Total Amount Due:</strong> ${totalPayable.toFixed(2)}
-                            <span className="interest-info">(Loan: ${loan.amount} + {(interestRate * 100).toFixed(0)}% Interest: ${(loan.amount * interestRate).toFixed(2)})</span>
+                            {/* Display interest calculation with proper number conversion */}
+                            <span className="interest-info">(Loan: ${loanAmount.toFixed(2)} + {(interestRate * 100).toFixed(0)}% Interest: ${(loanAmount * interestRate).toFixed(2)})</span>
                           </p>
                         </div>
                         

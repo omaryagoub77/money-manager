@@ -1,245 +1,346 @@
-import React, { useState, useEffect } from 'react';
-import { db } from "../firebaseConfig";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
-import Alert from '../components/Alert';
+import React, { useState, useEffect, useRef } from 'react';
 import './Home.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faWallet, faHandHoldingUsd, 
+  faComments, faChartLine, faUserShield, faHeadset, 
+  faArrowRight, faMapMarkerAlt, faPhone, faEnvelope,
+  faStar
+} from '@fortawesome/free-solid-svg-icons';
+import { 
+  faFacebookF, faTwitter, faInstagram, faLinkedinIn
+} from '@fortawesome/free-brands-svg-icons';
 
-const Home = () => {
-  const { currentUser } = useAuth();
-  const [deposits, setDeposits] = useState([]);
-  const [loans, setLoans] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [totals, setTotals] = useState({ deposits: 0, loans: 0 });
-  const [error, setError] = useState(null);
-
-  // Fetch user deposits and loans
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!currentUser) return;
+const Hero = () => {
+  const scrollToServices = () => {
+    const element = document.getElementById('services');
+    if (element) {
+      // Removed header reference since we're not using a header
+      const targetPosition = element.offsetTop;
       
-      try {
-        // Fetch deposits
-        const depositsQuery = query(
-          collection(db, "deposits"),
-          where("userId", "==", currentUser.uid)
-        );
-        const depositsSnapshot = await getDocs(depositsQuery);
-        const depositsData = [];
-        let totalDeposits = 0;
-        
-        depositsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          depositsData.push({ id: doc.id, ...data });
-          totalDeposits += data.amount || 0;
-        });
-        
-        // Sort deposits by timestamp (newest first)
-        depositsData.sort((a, b) => {
-          const aTime = a.timestamp?.toDate?.() || new Date(0);
-          const bTime = b.timestamp?.toDate?.() || new Date(0);
-          return bTime - aTime;
-        });
-        
-        setDeposits(depositsData);
-        
-        // Fetch loans
-        const loansQuery = query(
-          collection(db, "loans"),
-          where("userId", "==", currentUser.uid)
-        );
-        const loansSnapshot = await getDocs(loansQuery);
-        const loansData = [];
-        let totalLoans = 0;
-        
-        loansSnapshot.forEach((doc) => {
-          const data = doc.data();
-          loansData.push({ id: doc.id, ...data });
-          if (data.status === 'accepted') {
-            totalLoans += data.amount || 0;
-          }
-        });
-        
-        // Sort loans by timestamp (newest first)
-        loansData.sort((a, b) => {
-          const aTime = a.timestamp?.toDate?.() || new Date(0);
-          const bTime = b.timestamp?.toDate?.() || new Date(0);
-          return bTime - aTime;
-        });
-        
-        setLoans(loansData);
-        setTotals({ deposits: totalDeposits, loans: totalLoans });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to load dashboard data. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentUser]);
-
-  // Format timestamp for display
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    
-    const date = timestamp.toDate();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const day = date.getDate();
-    const month = date.toLocaleString('default', { month: 'short' });
-    
-    return `${hours}:${minutes} · ${day} ${month}`;
-  };
-
-  // Get status class for styling
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'accepted':
-        return 'status-accepted';
-      case 'denied':
-        return 'status-denied';
-      case 'pending':
-        return 'status-pending';
-      default:
-        return 'status-pending';
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
-  if (loading) {
-    return (
-      <div className="home-container">
-        <div className="loading-indicator">
-          <div className="loading-dots">
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-          </div>
-        </div>
+  return (
+    <section id="home" className="hero">
+      <div className="heroContent">
+        <h1>Money Box — Fast, Secure & Effortless</h1>
+        <p>Handle deposits, manage cashouts, and stay connected with your community — all in one intuitive dashboard.</p>
+        <button className="ctaButton" onClick={scrollToServices}>
+          Try Now
+        </button>
       </div>
+    </section>
+  );
+};
+
+const Services = () => {
+  const serviceCardsRef = useRef([]);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.1 }
     );
-  }
+    
+    serviceCardsRef.current.forEach((card) => {
+      if (card) observer.observe(card);
+    });
+    
+    return () => {
+      serviceCardsRef.current.forEach((card) => {
+        if (card) observer.unobserve(card);
+      });
+    };
+  }, []);
+
+  const services = [
+    {
+      icon: faWallet,
+      title: "Secure Deposits",
+      description: "Submit and track your deposits with our secure, encrypted system. Get instant confirmations and detailed transaction history."
+    },
+    {
+      icon: faHandHoldingUsd,
+      title: "Quick Cashouts",
+      description: "Request and receive cashouts quickly with our streamlined process. Track your requests in real-time and get notified on approval."
+    },
+    {
+      icon: faComments,
+      title: "Community Chat",
+      description: "Stay connected with your community through our modern chat interface. Share updates, ask questions, and get support instantly."
+    },
+    {
+      icon: faChartLine,
+      title: "Analytics Dashboard",
+      description: "Visualize your financial data with our intuitive analytics dashboard. Track trends, monitor performance, and make informed decisions."
+    },
+    {
+      icon: faUserShield,
+      title: "Advanced Security",
+      description: "Your data is protected with industry-leading security measures. We use encryption, multi-factor authentication, and regular security audits."
+    },
+    {
+      icon: faHeadset,
+      title: "24/7 Support",
+      description: "Get help whenever you need it with our round-the-clock customer support. Our team is always ready to assist you with any questions."
+    }
+  ];
 
   return (
-    <div className="home-container">
-      <div className="home-hero">
-        <h1 className="home-title">Dashboard</h1>
-        <p className="home-sub">Your financial overview</p>
-      </div>
-
-      {error && <Alert type="error" message={error} />}
-
-      {/* Totals Section */}
-      <div className="totals-grid">
-        <div className="total-card">
-          <h3>Total Deposits</h3>
-          <p className="total-amount">${totals.deposits.toFixed(2)}</p>
+    <section id="services" className="services">
+      <div className="container">
+        <div className="sectionTitle">
+          <h2>Our Services</h2>
+          <p>Discover powerful features that make Money Box perfect financial platform for you</p>
         </div>
-        <div className="total-card">
-          <h3>Total Loans</h3>
-          <p className="total-amount">${totals.loans.toFixed(2)}</p>
+        <div className="servicesGrid">
+          {services.map((service, index) => (
+            <div 
+              key={index} 
+              className="serviceCard" 
+              ref={el => serviceCardsRef.current[index] = el}
+            >
+              <div className="serviceIcon">
+                <FontAwesomeIcon icon={service.icon} />
+              </div>
+              <h3>{service.title}</h3>
+              <p>{service.description}</p>
+          
+            </div>
+          ))}
         </div>
       </div>
+    </section>
+  );
+};
 
-      {/* Deposits Table */}
-      <div className="card">
-        <h2>Recent Deposits</h2>
-        {deposits.length === 0 ? (
-          <p className="empty-state">No deposits found</p>
-        ) : (
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Amount</th>
-                  <th>Message</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deposits.slice(0, 5).map((deposit) => (
-                  <tr key={deposit.id}>
-                    <td>${deposit.amount?.toFixed(2)}</td>
-                    <td>{deposit.message || 'N/A'}</td>
-                    <td>{formatTimestamp(deposit.timestamp)}</td>
-                    <td>
-                      <span className={`status-badge ${getStatusClass(deposit.status || 'pending')}`}>
-                        {deposit.status || 'pending'}
-                      </span>
-                    </td>
-                  </tr>
+const HowItWorks = () => {
+  const stepsRef = useRef([]);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    stepsRef.current.forEach((step) => {
+      if (step) observer.observe(step);
+    });
+    
+    return () => {
+      stepsRef.current.forEach((step) => {
+        if (step) observer.unobserve(step);
+      });
+    };
+  }, []);
+
+  const steps = [
+    {
+      title: "Create Account",
+      description: "Sign up for a free account in minutes. Just provide your basic information and verify your email to get started."
+    },
+    {
+      title: "Set Up Profile",
+      description: "Complete your profile with additional details to unlock all features. Customize your dashboard and notification preferences."
+    },
+    {
+      title: "Make Transactions",
+      description: "Start making deposits, requesting cashouts, and interacting with community. All transactions are secure and instant."
+    },
+    {
+      title: "Track & Manage",
+      description: "Monitor your financial activity with our analytics dashboard. Get insights, track trends, and make informed decisions."
+    }
+  ];
+
+  return (
+    <section id="how-it-works" className="howItWorks">
+      <div className="container">
+        <div className="sectionTitle">
+          <h2>How It Works</h2>
+          <p>Get started with Money Box in just a few simple steps</p>
+        </div>
+        <div className="stepsContainer">
+          {steps.map((step, index) => (
+            <div 
+              key={index} 
+              className="step" 
+              ref={el => stepsRef.current[index] = el}
+            >
+              <div className="stepNumber">{index + 1}</div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Testimonials = () => {
+  const testimonialsRef = useRef([]);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    testimonialsRef.current.forEach((testimonial) => {
+      if (testimonial) observer.observe(testimonial);
+    });
+    
+    return () => {
+      testimonialsRef.current.forEach((testimonial) => {
+        if (testimonial) observer.unobserve(testimonial);
+      });
+    };
+  }, []);
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Small Business Owner",
+      avatar: "https://picsum.photos/seed/person1/100/100.jpg",
+      content: "Money Box has completely transformed how I manage my finances. The interface is intuitive, and the cashout process is incredibly fast. I couldn't be happier with this platform!"
+    },
+    {
+      name: "Michael Chen",
+      role: "Freelance Developer",
+      avatar: "https://picsum.photos/seed/person2/100/100.jpg",
+      content: "I've tried several financial platforms, but Money Box stands out with its security features and excellent customer support. It's become an essential tool for my daily transactions."
+    },
+    {
+      name: "Emily Rodriguez",
+      role: "Digital Marketer",
+      avatar: "https://picsum.photos/seed/person3/100/100.jpg",
+      content: "The community feature is what sets Money Box apart. I love being able to connect with others, share insights, and get advice. It's more than just a financial platform; it's a community."
+    }
+  ];
+
+  return (
+    <section id="testimonials" className="testimonials">
+      <div className="container">
+        <div className="sectionTitle">
+          <h2>What Our Users Say</h2>
+          <p>Join thousands of satisfied users who trust Money Box with their financial needs</p>
+        </div>
+        <div className="testimonialsContainer">
+          {testimonials.map((testimonial, index) => (
+            <div 
+              key={index} 
+              className="testimonial" 
+              ref={el => testimonialsRef.current[index] = el}
+            >
+              <div className="testimonialContent">
+                <p>{testimonial.content}</p>
+              </div>
+              <div className="testimonialAuthor">
+                <img src={testimonial.avatar} alt={testimonial.name} className="authorAvatar" />
+                <div className="authorInfo">
+                  <h4>{testimonial.name}</h4>
+                  <p>{testimonial.role}</p>
+                </div>
+              </div>
+              <div className="testimonialRating">
+                {[...Array(5)].map((_, i) => (
+                  <FontAwesomeIcon key={i} icon={faStar} />
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Footer = () => {
+  return (
+    <footer id="contact" className="footer">
+      <div className="container">
+        <div className="footerContent">
+          <div className="footerSection">
+            <h3>About Money Box</h3>
+            <p>Money Box is a modern financial platform designed to make managing your money simple, secure, and efficient. Join thousands of users who trust us with their financial needs.</p>
+            <div className="socialLinks">
+              <a href="#"><FontAwesomeIcon icon={faFacebookF} /></a>
+              <a href="#"><FontAwesomeIcon icon={faTwitter} /></a>
+              <a href="#"><FontAwesomeIcon icon={faInstagram} /></a>
+              <a href="#"><FontAwesomeIcon icon={faLinkedinIn} /></a>
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* Loans Table */}
-      <div className="card">
-        <h2>Recent Loans</h2>
-        {loans.length === 0 ? (
-          <p className="empty-state">No loans found</p>
-        ) : (
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Amount</th>
-                  <th>Name</th>
-                  <th>Reason</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loans.slice(0, 5).map((loan) => (
-                  <tr key={loan.id}>
-                    <td>${loan.amount?.toFixed(2)}</td>
-                    <td>{loan.name || 'N/A'}</td>
-                    <td>{loan.reason || 'N/A'}</td>
-                    <td>{formatTimestamp(loan.timestamp)}</td>
-                    <td>
-                      <span className={`status-badge ${getStatusClass(loan.status || 'pending')}`}>
-                        {loan.status || 'pending'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="footerSection">
+            <h3>Quick Links</h3>
+            <ul className="footerLinks">
+              <li><a href="#home">Home</a></li>
+              <li><a href="#services">Services</a></li>
+              <li><a href="#how-it-works">How It Works</a></li>
+              <li><a href="#testimonials">Testimonials</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
           </div>
-        )}
-      </div>
-
-      {/* Navigation Cards */}
-      <div className="cards-grid">
-        <div className="card">
-          <h2>Deposit Money</h2>
-          <p>Submit your deposits and track your financial history.</p>
-          <a href="#/deposit">Deposit</a>
+          <div className="footerSection">
+            <h3>Services</h3>
+            <ul className="footerLinks">
+              <li><a href="#">Secure Deposits</a></li>
+              <li><a href="#">Quick Cashouts</a></li>
+              <li><a href="#">Community Chat</a></li>
+              <li><a href="#">Analytics Dashboard</a></li>
+              <li><a href="#">Advanced Security</a></li>
+              <li><a href="#">24/7 Support</a></li>
+            </ul>
+          </div>
+          <div className="footerSection">
+            <h3>Contact Us</h3>
+            <ul className="footerLinks">
+              <li><FontAwesomeIcon icon={faMapMarkerAlt} /> rwanda kirihe mahama V13 - C15</li>
+              <li><FontAwesomeIcon icon={faPhone} /> +250795774877</li>
+              <li><FontAwesomeIcon icon={faEnvelope} /> omaryagoub77@gmail.com</li>
+            </ul>
+          </div>
         </div>
-
-        <div className="card">
-          <h2>Request Loan</h2>
-          <p>Request loans and track their status.</p>
-          <a href="#/loans">Loans</a>
-        </div>
-
-        <div className="card">
-          <h2>Pay Back Loans</h2>
-          <p>Pay back your accepted loans.</p>
-          <a href="#/payback">Pay Back</a>
-        </div>
-
-        <div className="card">
-          <h2>Profile</h2>
-          <p>Manage your account information and settings.</p>
-          <a href="#/profile">Profile</a>
+        <div className="copyright">
+          <p>&copy; 2023 Money Box. All rights reserved.</p>
         </div>
       </div>
+    </footer>
+  );
+};
+
+const Home = () => {
+  return (
+    <div className="home">
+      <Hero />
+      <Services />
+      <HowItWorks />
+      <Testimonials />
+      <Footer />
     </div>
   );
 };
